@@ -1,6 +1,7 @@
 // Vérifie les données du jeu Roblox : monde exporté et API de match.
 // Usage : node tests/roblox.mjs
 import { construireMonde, exporterMonde, nomModifie, COUPES } from '../roblox/outils/monde.mjs';
+import { lookSite } from '../src/core/looks.js';
 import { SOSIES } from '../roblox/outils/sosies.mjs';
 import { simulerMatch } from '../netlify/functions/match/core.mjs';
 
@@ -71,6 +72,25 @@ for (let s = 1; s <= 40; s++) {
 console.log('40 matchs de Ligue 1 : moyenne', ((total[0] + total[1]) / 40).toFixed(2), 'buts');
 if (simulerMatch(rm, rm, '1').error == null) err('un club contre lui-même devrait être refusé');
 if (simulerMatch('xx', fcb, '1').error == null) err('un club inconnu devrait être refusé');
+
+// Site et jeu : même tête pour un joueur (sauf les sosies des stars, jamais montrés sur le site)
+{
+  let pareil = 0, n = 0;
+  for (const p of Object.values(st.players)) {
+    if (!p.look || !p.club) continue;
+    const site = lookSite({ id: p.id, age: p.age, look: p.look });
+    if (p.look.sosie) {
+      const k = (l) => `${l.coupe}/${l.barbe}/${l.peau}`;
+      if (site.sosie) err(`le site montre le sosie de ${p.id}`);
+      continue;
+    }
+    n++;
+    const brut = lookSite({ id: p.id, age: p.age });
+    if (brut.coupe === p.look.coupe && brut.barbe === p.look.barbe && brut.peau === p.look.peau) pareil++;
+  }
+  console.log(`looks du site : ${Math.round((pareil / n) * 100)} % identiques au jeu sans passer par Roblox (${n} joueurs)`);
+  if (pareil / n < 0.8) err('les looks du site et du jeu ne se ressemblent plus');
+}
 
 console.log(erreurs ? `${erreurs} erreur(s)` : 'OK');
 process.exit(erreurs ? 1 : 0);

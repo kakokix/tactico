@@ -6,6 +6,9 @@ import { pshort } from '../../src/core/player.js';
 import { POS_ORDER } from '../../src/core/constants.js';
 import { REAL_COUNTRIES, REAL_CONTI } from '../../src/data/real/index.js';
 import { SOSIES } from './sosies.mjs';
+// coupes, tirage des looks et maillots : partagés avec le site, pour que chaque joueur ait la même tête
+import { COUPES, tirerLook, hashLook as hash, aleaLook as alea, maillot } from '../../src/core/looks.js';
+export { COUPES, maillot };
 
 export const GRAINE = 2026;
 // pays des carrières Roblox créées avant les nouveaux championnats (pour retrouver les vrais noms)
@@ -43,43 +46,6 @@ export function nomModifie(nom) {
 }
 
 // ---------- Personnages R6 ----------
-// Clés des coupes : mêmes noms que Apparence.COUPES dans Roblox
-const ALEA = [
-  ['buzz', 3], ['buzz2', 2], ['buzzBrun', 2], ['buzzBlond', 0.5], ['noirFrange', 2], ['brunCourt', 3], ['brunCoiffe', 2],
-  ['brunStyle', 1], ['brunMeche', 1.5], ['brunLisse', 1.5], ['bouclesNoires', 1.5], ['bouclesBrunes', 1.5], ['ondulesNoirs', 1.5],
-  ['twists', 1], ['locks', 1], ['afro', 0.5], ['longsBoucles', 0.4], ['longsBruns', 0.5], ['blondCourt', 1], ['blondEpi', 0.8],
-  ['chignonBlond', 0.3], ['chignonNoir', 0.4], ['noirArriere', 0.6], ['roux', 0.4], ['auburn', 0.4], ['desordre', 1], ['chauve', 0.6],
-];
-export const COUPES = ALEA.map((x) => x[0]);
-const CLAIRES = new Set(['buzzBlond', 'blondCourt', 'blondEpi', 'chignonBlond', 'roux', 'auburn']); // seulement avec les teints clairs
-
-function hash(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function alea(seed) {
-  let t = seed >>> 0;
-  return () => {
-    t = (t + 0x6d2b79f5) >>> 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const TOTAL = ALEA.reduce((s, x) => s + x[1], 0);
-function tirerLook(rnd, age) {
-  const peau = 1 + Math.floor(rnd() * 6);
-  let coupe;
-  for (let essai = 0; essai < 10; essai++) {
-    let x = rnd() * TOTAL;
-    coupe = ALEA.find(([, w]) => (x -= w) < 0)?.[0] || 'brunCourt';
-    if (!(CLAIRES.has(coupe) && peau > 3)) break;
-  }
-  const b = rnd();
-  const barbe = age >= 21 && b < 0.15 ? 'barbe' : age >= 20 && b < 0.3 ? 'courte' : '';
-  return { coupe, barbe, peau };
-}
 const cle = (l) => `${l.coupe}/${l.barbe}/${l.peau}`;
 
 // Look d'un joueur apparu en cours de carrière (jeunes, joueurs libres) : tiré de son identifiant
@@ -91,17 +57,6 @@ export function lookDe(p) {
 function lireSosie(txt) {
   const [coupe, barbe, peau] = txt.split('/');
   return { coupe, barbe, peau: +peau, sosie: 1 };
-}
-
-// ---------- Maillots ----------
-function lum(hex) {
-  const n = parseInt(hex.slice(1), 16);
-  return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
-}
-export function maillot([c1, c2]) {
-  const clair = lum(c1) > 0.85;
-  const num = Math.abs(lum(c1) - lum(c2)) > 0.35 ? c2 : lum(c1) > 0.5 ? '#111111' : '#FFFFFF';
-  return { m: c1, s: clair ? c1 : c2, n: num };
 }
 
 // ---------- Noms dans les textes gardés par une carrière (messages, actualités, transferts, palmarès) ----------
@@ -193,6 +148,7 @@ export function adapterPourSite(state) {
     }
     delete p.ln0;
     delete p.fn0;
+    if (p.look && p.look.sosie) delete p.look; // le sosie d'une star n'existe que dans le jeu, sous un nom modifié
     paires.push([complet(fn, ln), complet(p.fn, p.ln)], [ln, p.ln]);
   }
   if (state.mgr) remplacerNoms(state, paires);

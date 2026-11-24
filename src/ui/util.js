@@ -3,6 +3,7 @@ import { NATIONS } from '../data/names.js';
 import { PAYS } from '../data/pays.js';
 import ASSETS from '../assets/assets.json';
 import { POS_GROUP } from '../core/constants.js';
+import { lookSite, maillot } from '../core/looks.js';
 
 const FLAG_CODES = [...Object.keys(ASSETS.drapeaux.i), ...Object.keys(ASSETS.alias)];
 
@@ -140,56 +141,70 @@ export function posMap(main, alts = []) {
   return `<div class="posmap"><svg viewBox="0 0 68 100" preserveAspectRatio="none" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".5"><rect x="2" y="2" width="64" height="96"/><path d="M2 50h64"/><circle cx="34" cy="50" r="8"/><rect x="16" y="2" width="36" height="15"/><rect x="16" y="83" width="36" height="15"/></svg>${alts.map((a) => dot(a, 'p2')).join('')}${dot(main, 'p1')}</div>`;
 }
 
-// ---------- Avatar dessiné d'un joueur ----------
-// Tiré au hasard à partir de son seul identifiant : jamais d'après son nom, sa nationalité ou un vrai visage.
-const AV_PEAU = ['#f5cdaf', '#eab892', '#cc8e69', '#a06948', '#7c5238', '#5c3c2a'];
-const AV_CHEV = ['#17120f', '#2e1d13', '#4a2f1c', '#6e4527', '#c99b4a', '#a4522b'];
-function avHash(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function avRnd(seed) {
-  let t = seed >>> 0;
-  return () => {
-    t = (t + 0x6d2b79f5) >>> 0;
-    let r = Math.imul(t ^ (t >>> 15), 1 | t);
-    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
-    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const AV_O = '#13201a';
-const AV_COUPES = {
-  ras: (c) => `<path d="M20.6 25c.4-10 5.4-11.5 11.4-11.5s11 1.5 11.4 11.5c-3.4-5.5-7.4-6.5-11.4-6.5s-8 1-11.4 6.5z" fill="${c}"/>`,
-  court: (c) => `<path d="M20 26c-1-13 6-15 12-15 7 0 13 2.5 12 15-2-5-4-6.5-8-5.5-3-2.5-9-2-12-.5-2 1-3 3-4 6z" fill="${c}" stroke="${AV_O}" stroke-width="1.6" stroke-linejoin="round"/>`,
-  raie: (c) => `<path d="M20 26c-1-12 5-15 13-15 7 0 12 3 11 14-3-6-7-8-13-8-4 0-8 2-11 9z" fill="${c}" stroke="${AV_O}" stroke-width="1.6" stroke-linejoin="round"/>`,
-  boucles: (c) => `<g fill="${c}" stroke="${AV_O}" stroke-width="1.4">${[[21.5, 21], [25.5, 16], [32, 14], [38.5, 16], [42.5, 21]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5.2"/>`).join('')}</g>`,
-  iroquois: (c) => `<path d="M29 12c1-3 5-3 6 0v9c-1-1.5-5-1.5-6 0z" fill="${c}" stroke="${AV_O}" stroke-width="1.4"/>`,
-  chauve: () => '<path d="M26 17.5c2-1.2 4-1.6 6-1.6" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>',
+// ---------- Avatar d'un joueur : son personnage R6, comme dans le jeu Roblox ----------
+// Même coupe, même barbe et même teint que dans le jeu (src/core/looks.js), tirés de l'identifiant du joueur :
+// jamais d'après son nom, sa nationalité ou un vrai visage. Pas de sosie de star sur le site.
+const R6_PEAU = ['#f5cdaf', '#eab892', '#cc8e69', '#a06948', '#7c5238', '#5c3c2a'];
+const R6_TEINTE = { noir: '#1c1613', brun: '#4a2d1a', marron: '#6b4426', blond: '#d9b35c', roux: '#c25f2c', auburn: '#9c4526' };
+// coupe du jeu → forme dessinée et teinte (d'après les accessoires du catalogue Roblox utilisés dans le jeu)
+const R6_COUPES = {
+  buzz: ['buzz', 'noir'], buzz2: ['buzz', 'noir'], buzzBrun: ['buzz', 'marron'], buzzBlond: ['buzz', 'blond'],
+  noirFrange: ['frange', 'noir'], brunCourt: ['ondule', 'brun'], brunCoiffe: ['coiffe', 'brun'], brunStyle: ['houppe', 'brun'],
+  brunMeche: ['meche', 'brun'], brunLisse: ['lisse', 'brun'], bouclesNoires: ['boucles', 'noir'], bouclesBrunes: ['boucles', 'brun'],
+  ondulesNoirs: ['ondule', 'noir'], twists: ['twists', 'noir'], locks: ['locks', 'noir'], afro: ['afro', 'noir'],
+  longsBoucles: ['longsBoucles', 'brun'], longsBruns: ['longs', 'marron'], blondCourt: ['balaye', 'blond'], blondEpi: ['epi', 'blond'],
+  chignonBlond: ['chignonFou', 'blond'], chignonNoir: ['chignon', 'noir'], noirArriere: ['chignonFou', 'noir'],
+  roux: ['court', 'roux'], auburn: ['desordre', 'auburn'], desordre: ['desordre', 'marron'],
 };
-const AV_DERRIERE = {
-  afro: (c) => `<circle cx="32" cy="23" r="17" fill="${c}" stroke="${AV_O}" stroke-width="2"/>`,
-  longs: (c) => `<path d="M19 28c-2-16 7-19 13-19s15 3 13 19l1 14c-4 2-6-2-6-6H24c0 4-2 8-6 6z" fill="${c}" stroke="${AV_O}" stroke-width="1.8" stroke-linejoin="round"/>`,
+const R6_CAP = 'M19.4 24 V20.5 Q19.4 12.9 27.2 12.9 H36.8 Q44.6 12.9 44.6 20.5 V24 Q43.4 20 40.6 19 Q32 17.6 23.4 19 Q20.6 20 19.4 24 Z';
+const R6_BOUCLES = [[20.6, 20.2, 3.2], [22.6, 15.6, 3.6], [26.6, 12.8, 3.8], [31.4, 11.8, 3.9], [36.4, 12.4, 3.8], [40.6, 15, 3.6], [43, 19.6, 3.2], [24.5, 18.4, 2.2], [28.6, 17.4, 2.2], [32.6, 17.1, 2.2], [36.6, 17.5, 2.2], [40, 18.6, 2]];
+const ronds = (l, c) => l.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`).join('');
+const brins = (xs, haut, bas, c) => xs.map((x) => `<rect x="${x - 1.45}" y="${haut(x)}" width="2.9" height="${bas - haut(x)}" rx="1.45" fill="${c}" stroke="#000" stroke-opacity=".3" stroke-width=".5"/>`).join('');
+const R6_DERRIERE = {
+  afro: (c) => `<ellipse cx="32" cy="19" rx="17.5" ry="14" fill="${c}"/>`,
+  longs: (c) => `<path d="M18 22 Q18 11.5 27 11.5 H37 Q46 11.5 46 22 V44 H39 V30 H25 V44 H18 Z" fill="${c}"/>`,
+  longsBoucles: (c) => ronds([[18.6, 19, 3.6], [18, 25, 3.6], [18.4, 31, 3.6], [19.2, 37, 3.4], [45.4, 19, 3.6], [46, 25, 3.6], [45.6, 31, 3.6], [44.8, 37, 3.4]], c),
+  locks: (c) => brins([17.2, 20.2, 43.8, 46.8], () => 15, 35, c),
+};
+const R6_DEVANT = {
+  buzz: (c) => `<path d="M20 23.5 V21 Q20 14 27.5 14 H36.5 Q44 14 44 21 V23.5 Q42.5 19.6 39 18.6 Q32 17.2 25 18.6 Q21.5 19.6 20 23.5 Z" fill="${c}" fill-opacity=".93"/>`,
+  court: (c) => `<path d="${R6_CAP}" fill="${c}"/>`,
+  frange: (c) => `<path d="M19.4 23 V20 Q19.4 12.9 27.2 12.9 H36.8 Q44.6 12.9 44.6 20 V23 L42.5 20.8 L40.5 21.6 L38.2 20.4 L35.8 21.8 L33.5 20.5 L31 21.8 L28.6 20.4 L26.2 21.6 L23.8 20.4 L21.6 21.5 Z" fill="${c}"/>`,
+  coiffe: (c) => `<path d="M19.4 25 V20.5 Q19.4 12.9 27.2 12.9 H36.8 Q44.6 12.9 44.6 20.5 V24.5 Q43.6 19.2 39.5 18.4 Q35 17.6 33.6 16.2 Q30.5 19.2 24.5 19.4 Q21 20 19.4 25 Z" fill="${c}"/><path d="M33.6 16.2 L35.6 13.4" stroke="#000" stroke-opacity=".35" stroke-width=".8"/>`,
+  houppe: (c) => `<path d="M19.4 24 V20 Q19.4 13.2 25 12.2 Q27.5 7.2 34 7.6 Q41.5 8.2 43.8 13.2 Q44.6 15.2 44.6 20 V24 Q43.2 19.6 40 18.8 Q32 17.4 24 18.8 Q20.8 19.6 19.4 24 Z" fill="${c}"/><path d="M27 10.8 Q32 8.9 38 10.5" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="1"/>`,
+  meche: (c) => `<path d="M19.4 24.5 V20 Q19.4 12.9 27.2 12.9 H36.8 Q44.6 12.9 44.6 20 V24 Q43.5 19.8 41 18.6 Q36 21.8 29 21.2 Q24 20.8 21.5 22.4 Q20.4 23 19.4 24.5 Z" fill="${c}"/>`,
+  lisse: (c) => `<path d="M19.6 23 V20.2 Q19.6 13.2 27.3 13.2 H36.7 Q44.4 13.2 44.4 20.2 V23 Q43.6 19 41 18 Q37 17.2 34.6 15.6 Q31.6 18.2 25 18.4 Q21.2 18.8 19.6 23 Z" fill="${c}"/><path d="M24.5 15.7 Q29 14.5 32.5 14.9" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1"/>`,
+  ondule: (c) => `<path d="M19.4 24.5 V20.5 Q19.4 12.9 27.2 12.9 H36.8 Q44.6 12.9 44.6 20.5 V24.5 Q43.8 20.6 42 21 Q40.8 18.6 38.6 20.2 Q36.6 17.8 34.2 19.8 Q32 17.6 29.8 19.8 Q27.4 17.8 25.4 20.2 Q23.2 18.6 22 21 Q20.2 20.6 19.4 24.5 Z" fill="${c}"/>`,
+  boucles: (c) => `<path d="${R6_CAP}" fill="${c}"/>` + ronds(R6_BOUCLES, c),
+  twists: (c) => `<path d="${R6_CAP}" fill="${c}"/>` + brins([21.6, 24.6, 27.6, 30.6, 33.6, 36.6, 39.6, 42.6], (x) => 9.4 + Math.abs(x - 32) * 0.28, 19.2, c),
+  locks: (c) => `<path d="${R6_CAP}" fill="${c}"/>` + brins([21.6, 24.6, 27.6, 30.6, 33.6, 36.6, 39.6, 42.6], (x) => 9.4 + Math.abs(x - 32) * 0.28, 20.6, c),
+  afro: (c) => `<path d="M20 22.5 Q20 15 27 14.6 H37 Q44 15 44 22.5 Q40 18.6 32 18.4 Q24 18.6 20 22.5 Z" fill="${c}"/>`,
+  longs: (c) => `<path d="M19.2 26 V20 Q19.2 12.6 27 12.6 H37 Q44.8 12.6 44.8 20 V26 Q43.6 20.4 40 18.6 Q35 17.4 32 15.4 Q29 17.4 24 18.6 Q20.4 20.4 19.2 26 Z" fill="${c}"/><path d="M19.2 22 V34.5 L21.4 34 V21 Z M44.8 22 V34.5 L42.6 34 V21 Z" fill="${c}"/>`,
+  longsBoucles: (c) => `<path d="${R6_CAP}" fill="${c}"/>` + ronds(R6_BOUCLES, c) + ronds([[19.8, 24.5, 2.6], [44.2, 24.5, 2.6]], c),
+  balaye: (c) => `<path d="M19.4 24 V20.2 Q19.4 12.9 27.2 12.9 H36.8 Q44.6 12.9 44.6 20.2 V23 Q43 18.6 39 18.2 Q33.5 18.6 27.5 20.8 Q22.6 22.4 19.4 24 Z" fill="${c}"/><path d="M23.5 16.4 Q31 14.8 39.5 16.6" fill="none" stroke="#000" stroke-opacity=".22" stroke-width=".9"/>`,
+  epi: (c) => `<path d="M19.6 23.5 V19.5 L19.2 14.5 L22.8 15.6 L23.6 10.2 L27 13.4 L28.8 8.4 L31.6 12.6 L33.8 8 L35.8 12.6 L38.6 9 L39.8 13.6 L43.4 11.6 L43.2 15.8 L44.8 15.4 L44.4 19.5 V23.5 Q43 19.4 39.6 18.6 Q32 17.4 24.4 18.6 Q21 19.4 19.6 23.5 Z" fill="${c}"/>`,
+  chignon: (c) => `<circle cx="32" cy="10" r="4.6" fill="${c}"/><path d="M19.6 23 V20.2 Q19.6 13.2 27.3 13.2 H36.7 Q44.4 13.2 44.4 20.2 V23 Q42.6 18.4 32 18 Q21.4 18.4 19.6 23 Z" fill="${c}"/><path d="M25 15.8 Q32 14.2 39 15.8" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1"/>`,
+  chignonFou: (c) => `<circle cx="32" cy="10" r="4.8" fill="${c}"/><path d="M27.6 8.4 L25.4 6.6 M36.4 8.4 L38.8 6.8 M32 5.4 L32.6 3.6" stroke="${c}" stroke-width="1.6" stroke-linecap="round"/><path d="M19.4 24 V20.2 Q19.4 13 27.3 13 H36.7 Q44.6 13 44.6 20.2 V24 L43 20.6 L41.4 21.4 Q36 18.2 32 18.4 Q27 18.4 22.6 21.4 L21 20.6 Z" fill="${c}"/>`,
+  desordre: (c) => `<path d="M19.2 25 L19 19.5 L17.6 17.6 L20.6 16.4 L20.4 13.4 L23.8 13.8 L24.8 10.6 L27.8 12.6 L30 9.6 L32.4 12.2 L35.2 9.8 L36.8 12.6 L40 11 L40.6 14.4 L44 14.2 L43.4 17 L46.2 18.4 L44.8 20.2 L45 25 Q43.2 20.4 40.4 20.6 L38.6 18.2 L36.2 20.6 L33.4 17.8 L30.8 20.4 L28.2 18 L25.6 20.6 L23.2 18.6 Q20.6 20.6 19.2 25 Z" fill="${c}"/>`,
 };
 export function avatar(p, club, size = 40) {
-  const r = avRnd(avHash(String(p.id) + ':avatar'));
-  const peau = Math.floor(r() * 6);
-  const styles = ['ras', 'ras', 'court', 'court', 'court', 'raie', 'raie', 'boucles', 'boucles', 'afro', 'longs', 'iroquois', 'chauve'];
-  const style = styles[Math.floor(r() * styles.length)];
-  let chev = AV_CHEV[Math.floor(r() * (peau > 2 ? 3 : AV_CHEV.length))];
-  if (p.age >= 32 && r() < 0.3) chev = '#8d8d8d';
-  const barbe = p.age >= 21 && r() < 0.28;
-  const c1 = club ? club.colors[0] : '#3a4a42', c2 = club ? club.colors[1] : '#8fa99b';
-  const sk = AV_PEAU[peau];
-  return `<svg class="av" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#183022"/>`
-    + (AV_DERRIERE[style] ? AV_DERRIERE[style](chev) : '')
-    + `<rect x="27.5" y="35" width="9" height="13" rx="3" fill="${sk}" stroke="${AV_O}" stroke-width="2"/>`
-    + `<path d="M5 66c2-13 12-18.5 27-18.5S57 53 59 66z" fill="${c1}" stroke="${AV_O}" stroke-width="2"/><path d="M25.5 48 32 55l6.5-7" fill="none" stroke="${c2}" stroke-width="3" stroke-linejoin="round"/>`
-    + `<circle cx="20.6" cy="28.5" r="3" fill="${sk}" stroke="${AV_O}" stroke-width="1.8"/><circle cx="43.4" cy="28.5" r="3" fill="${sk}" stroke="${AV_O}" stroke-width="1.8"/>`
-    + `<ellipse cx="32" cy="27" rx="11.6" ry="13" fill="${sk}" stroke="${AV_O}" stroke-width="2"/>`
-    + (barbe ? `<path d="M20.9 29c.3 9.5 5 12.5 11.1 12.5S42.8 38.5 43.1 29c-2 5.5-6 7-11.1 7s-9.1-1.5-11.1-7z" fill="${chev}"/>` : '')
-    + `<circle cx="27.4" cy="28" r="1.5" fill="${AV_O}"/><circle cx="36.6" cy="28" r="1.5" fill="${AV_O}"/><path d="M25 24.3h4.6M34.4 24.3H39" stroke="${chev}" stroke-width="1.7" stroke-linecap="round"/>`
-    + `<path d="M29.2 33.8q2.8 1.9 5.6 0" fill="none" stroke="#6b2f24" stroke-width="1.5" stroke-linecap="round"/>`
-    + (AV_COUPES[style] || (style === 'afro' ? AV_COUPES.boucles : AV_COUPES.court))(chev)
-    + '</svg>';
+  const l = lookSite(p);
+  const sk = R6_PEAU[Math.min(6, Math.max(1, l.peau || 3)) - 1];
+  const [forme, teinte] = R6_COUPES[l.coupe] || [null, null];
+  const c = R6_TEINTE[teinte] || R6_TEINTE.brun;
+  const k = club ? maillot(club.colors) : { m: '#3a4a42', n: '#ffffff' };
+  const num = size >= 56 && typeof p.num === 'number' && !p.youth ? `<text x="44" y="47.5" font-size="7" font-weight="800" font-family="Arial,sans-serif" text-anchor="middle" fill="${esc(k.n)}">${p.num}</text>` : '';
+  const barbe = l.barbe === 'barbe' ? '<path d="M20 26.5 V30 Q20 37.2 27.5 37.2 H36.5 Q44 37.2 44 30 V26.5 Q42.6 32.2 38.6 33.4 Q32 35.4 25.4 33.4 Q21.4 32.2 20 26.5 Z" fill="#3a2616"/>'
+    : l.barbe === 'courte' ? '<path d="M20 26.5 V30 Q20 37.2 27.5 37.2 H36.5 Q44 37.2 44 30 V26.5 Q42.6 32.2 38.6 33.4 Q32 35.4 25.4 33.4 Q21.4 32.2 20 26.5 Z" fill="#2a1d14" fill-opacity=".3"/>' : '';
+  // personnage un peu agrandi autour des épaules, comme le portrait de la fiche dans le jeu
+  return `<svg class="av" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#183022"/><g transform="translate(32 44) scale(1.15) translate(-32 -44)">`
+    + (forme && R6_DERRIERE[forme] ? R6_DERRIERE[forme](c) : '')
+    + `<rect x="-6" y="37" width="76" height="30" fill="${esc(k.m)}"/><rect x="-6" y="37" width="19" height="30" fill="#000" fill-opacity=".12"/><rect x="51" y="37" width="19" height="30" fill="#000" fill-opacity=".12"/>`
+    + '<path d="M13 37v30M51 37v30" stroke="#000" stroke-opacity=".3" stroke-width=".8"/><ellipse cx="32" cy="37.7" rx="11" ry="1.8" fill="#000" fill-opacity=".25"/>'
+    + num
+    + `<rect x="20" y="14" width="24" height="23" rx="7.5" fill="${sk}" stroke="#000" stroke-opacity=".18" stroke-width=".8"/>`
+    + barbe
+    + '<ellipse cx="28.2" cy="24.6" rx="1.35" ry="2.3" fill="#1b1b1b"/><ellipse cx="35.8" cy="24.6" rx="1.35" ry="2.3" fill="#1b1b1b"/><path d="M26.2 29.4 Q32 34.6 37.8 29.4" fill="none" stroke="#1b1b1b" stroke-width="1.5" stroke-linecap="round"/>'
+    + (forme ? R6_DEVANT[forme](c) : '<path d="M26 16.6 Q29 15.3 32 15.3" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="1.2" stroke-linecap="round"/>')
+    + '</g></svg>';
 }
