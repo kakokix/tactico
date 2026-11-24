@@ -10,3 +10,10 @@ const html = tpl.replace('/*CSS*/', () => css).replace('/*JS*/', () => js);
 mkdirSync('dist', { recursive: true });
 writeFileSync('dist/index.html', html);
 console.log('dist/index.html', (html.length / 1024).toFixed(0) + ' Ko');
+
+// Monde pour le jeu Roblox (lu par ses serveurs au démarrage)
+const { construireMonde, exporterMonde } = await import('./roblox/outils/monde.mjs');
+const monde = JSON.stringify(exporterMonde(construireMonde()));
+mkdirSync('dist/roblox', { recursive: true });
+writeFileSync('dist/roblox/monde.json', monde);
+console.log('dist/roblox/monde.json', (monde.length / 1024).toFixed(0) + ' Ko');
