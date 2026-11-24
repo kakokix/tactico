@@ -80,6 +80,12 @@ function tirerLook(rnd, age) {
 }
 const cle = (l) => `${l.coupe}/${l.barbe}/${l.peau}`;
 
+// Look d'un joueur apparu en cours de carrière (jeunes, joueurs libres) : tiré de son identifiant
+export function lookDe(p) {
+  if (!p.look) p.look = tirerLook(alea(hash(p.id + ':' + GRAINE)), p.age);
+  return p.look;
+}
+
 function lireSosie(txt) {
   const [coupe, barbe, peau] = txt.split('/');
   return { coupe, barbe, peau: +peau, sosie: 1 };
