@@ -13,7 +13,7 @@ export default async (req) => {
     return res.error ? json(res, 400) : json(res);
   } catch (e) {
     console.error(e);
-    return json({ error: 'Erreur serveur.' }, 500);
+    return json({ error: 'Server error.' }, 500);
   }
 };
 

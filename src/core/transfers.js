@@ -6,9 +6,15 @@ import { addFin, wageBill } from './finance.js';
 import { windowOpen, dayOf } from './dates.js';
 import { assignNumbers } from './worldgen.js';
 import { refreshClubStrength, autoLineup } from './team.js';
+import { L, LANG } from './i18n.js';
 
 export const fmtMoney = (v) => {
   const a = Math.abs(v), s = v < 0 ? '-' : '';
+  if (LANG === 'en') {
+    if (a >= 1e6) return s + '€' + (a / 1e6).toFixed(a >= 1e8 ? 0 : 1).replace('.0', '') + 'M';
+    if (a >= 1e3) return s + '€' + Math.round(a / 1e3) + 'K';
+    return s + '€' + Math.round(a);
+  }
   if (a >= 1e6) return s + (a / 1e6).toFixed(a >= 1e8 ? 0 : 1).replace('.0', '') + ' M€';
   if (a >= 1e3) return s + Math.round(a / 1e3) + ' k€';
   return s + Math.round(a) + ' €';
@@ -41,12 +47,12 @@ export function askingPrice(state, p) {
 export function evaluateBid(state, p, fee, buyer) {
   const ask = askingPrice(state, p);
   const club = state.clubs[p.club];
-  if (club.squad.length <= 18) return { res: 'reject', reason: `${club.name} n'a pas assez de joueurs pour vendre.` };
-  if (p.joined > state.day - 60 && !p.listed) return { res: 'reject', reason: `${club.name} vient de recruter ce joueur et ne veut pas le vendre.` };
+  if (club.squad.length <= 18) return { res: 'reject', reason: L(`${club.name} n'a pas assez de joueurs pour vendre.`, `${club.name} don't have enough players to sell.`) };
+  if (p.joined > state.day - 60 && !p.listed) return { res: 'reject', reason: L(`${club.name} vient de recruter ce joueur et ne veut pas le vendre.`, `${club.name} have just signed this player and won't sell him.`) };
   if (buyer && buyer.id === club.id) return { res: 'reject', reason: '' };
   if (fee >= ask) return { res: 'accept', ask };
   if (fee >= ask * 0.85) return { res: 'counter', counter: Math.round(ask / 25000) * 25000, ask };
-  return { res: 'reject', ask, reason: `${club.name} juge l'offre insuffisante (prix demandé ≈ ${fmtMoney(ask)}).` };
+  return { res: 'reject', ask, reason: L(`${club.name} juge l'offre insuffisante (prix demandé ≈ ${fmtMoney(ask)}).`, `${club.name} consider the offer too low (asking price ≈ ${fmtMoney(ask)}).`) };
 }
 
 export function wageDemand(state, p, club) {
@@ -62,27 +68,27 @@ export function willJoin(state, p, club) {
   if (p.club === club.id || !p.club) return { ok: true };
   const cur = p.club ? state.clubs[p.club] : null;
   const curRep = cur ? cur.rep : 30;
-  if (club.rep < curRep - 22 && p.ovr >= 70) return { ok: false, reason: `${pname(p)} ne souhaite pas rejoindre un club moins prestigieux.` };
+  if (club.rep < curRep - 22 && p.ovr >= 70) return { ok: false, reason: L(`${pname(p)} ne souhaite pas rejoindre un club moins prestigieux.`, `${pname(p)} doesn't want to join a less prestigious club.`) };
   const squad = club.squad.map((id) => state.players[id]).filter((x) => POS_GROUP[x.pos] === POS_GROUP[p.pos]);
   const better = squad.filter((x) => x.ovr >= p.ovr + 6).length;
   const need = POS_GROUP[p.pos] === 'GB' ? 1 : 3;
-  if (better >= need && p.age >= 22 && p.ovr >= 65) return { ok: false, reason: `${pname(p)} craint de manquer de temps de jeu.` };
+  if (better >= need && p.age >= 22 && p.ovr >= 65) return { ok: false, reason: L(`${pname(p)} craint de manquer de temps de jeu.`, `${pname(p)} is worried about a lack of playing time.`) };
   return { ok: true };
 }
 
 export function contractResponse(state, p, club, wage, years) {
   const demand = wageDemand(state, p, club);
-  if (years < 1 || years > 5) return { ok: false, reason: 'Durée invalide.' };
-  if (p.age >= 32 && years > 2) return { ok: false, demand, reason: `À ${p.age} ans, ${p.fn} préfère un contrat de 1 ou 2 ans… mais accepte volontiers plus court.`, soft: true };
+  if (years < 1 || years > 5) return { ok: false, reason: L('Durée invalide.', 'Invalid contract length.') };
+  if (p.age >= 32 && years > 2) return { ok: false, demand, reason: L(`À ${p.age} ans, ${p.fn} préfère un contrat de 1 ou 2 ans… mais accepte volontiers plus court.`, `At ${p.age}, ${p.fn || pname(p)} prefers a 1 or 2-year contract… but will gladly accept a shorter one.`), soft: true };
   if (wage >= demand) return { ok: true, demand };
   if (wage >= demand * 0.9 && R.chance(0.5)) return { ok: true, demand };
-  return { ok: false, demand, reason: `${pname(p)} demande au moins ${fmtMoney(demand)} par semaine.` };
+  return { ok: false, demand, reason: L(`${pname(p)} demande au moins ${fmtMoney(demand)} par semaine.`, `${pname(p)} wants at least ${fmtMoney(demand)} a week.`) };
 }
 
 export function canAfford(state, club, fee, wage, oldWage = 0) {
-  if (fee > club.tBudget) return { ok: false, reason: `Budget transferts insuffisant (${fmtMoney(club.tBudget)}).` };
+  if (fee > club.tBudget) return { ok: false, reason: L(`Budget transferts insuffisant (${fmtMoney(club.tBudget)}).`, `Not enough transfer budget (${fmtMoney(club.tBudget)}).`) };
   const bill = wageBill(state, club) - oldWage + wage;
-  if (bill > club.wBudget) return { ok: false, reason: `Masse salariale dépassée (budget ${fmtMoney(club.wBudget)}/sem.).` };
+  if (bill > club.wBudget) return { ok: false, reason: L(`Masse salariale dépassée (budget ${fmtMoney(club.wBudget)}/sem.).`, `Wage budget exceeded (budget ${fmtMoney(club.wBudget)}/wk).`) };
   return { ok: true };
 }
 

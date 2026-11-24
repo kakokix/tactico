@@ -3,6 +3,7 @@ import { R, clamp, round1 } from './rng.js';
 import { A, FORMATIONS, posFit, POS_GROUP } from './constants.js';
 import { pshort } from './player.js';
 import { condFactor } from './team.js';
+import { L, LANG } from './i18n.js';
 
 const DW = { GB: 0, DC: 1.0, DD: 0.8, DG: 0.8, MDC: 0.6, MC: 0.3, MD: 0.3, MG: 0.3, MOC: 0.1, AD: 0.15, AG: 0.15, BU: 0.05 };
 const MW = { GB: 0.05, DC: 0.2, DD: 0.35, DG: 0.35, MDC: 0.9, MC: 1.0, MD: 0.7, MG: 0.7, MOC: 0.8, AD: 0.35, AG: 0.35, BU: 0.2 };
@@ -20,7 +21,7 @@ const SHOOT_W = { GB: 0, DC: 0.3, DD: 0.35, DG: 0.35, MDC: 0.45, MC: 0.95, MD: 1
 const HEAD_W = { GB: 0, DC: 2.2, DD: 0.4, DG: 0.4, MDC: 0.9, MC: 0.7, MD: 0.5, MG: 0.5, MOC: 0.6, AD: 0.6, AG: 0.6, BU: 3 };
 const WIDE = new Set(['DD', 'DG', 'MD', 'MG', 'AD', 'AG']);
 
-const T_ = {
+const T_FR = {
   ko: ["Coup d'envoi ! C'est parti entre {h} et {a}.", "L'arbitre siffle le coup d'envoi !"],
   through: ['{a} glisse un ballon en profondeur pour {s}…', 'Superbe ouverture de {a} vers {s} !', '{s} prend la profondeur sur une passe de {a}…'],
   cross: ['{a} centre depuis le côté…', 'Centre de {a} dans la surface !', '{a} déborde et adresse un centre…'],
@@ -51,6 +52,39 @@ const T_ = {
   sub: ['Changement {team} : {in} remplace {out}.'],
   quiet: ['{team} fait tourner le ballon.', 'Phase de possession pour {team}.', '{team} cherche la faille.', 'Le jeu se déroule au milieu de terrain.', '{team} construit patiemment depuis l\'arrière.'],
 };
+const T_EN = {
+  ko: ['Kick-off! {h} and {a} get us under way.', 'The referee blows for kick-off!'],
+  through: ['{a} slides a ball in behind for {s}…', 'Superb pass from {a} to {s}!', '{s} races clear onto a pass from {a}…'],
+  cross: ['{a} crosses from the flank…', 'Cross from {a} into the box!', '{a} beats his man and swings in a cross…'],
+  cutback: ['{a} cuts it back for {s}…', 'Pull-back from {a} to {s}!'],
+  long: ['{s} tries his luck from distance…', 'Long-range effort from {s}!', '{s} lets fly from 25 yards…'],
+  dribble: ['{s} beats his man and drives into the box…', 'What a run from {s}!', '{s} takes on the defence and shoots…'],
+  scramble: ['Goalmouth scramble!', 'The ball is loose in the six-yard box…'],
+  header_sp: ['Set piece from {a}, {s} rises…', '{a} curls it in, header from {s}…'],
+  fk: ['Free kick in a great position for {team}. {s} stands over it…', '{s} goes for goal from the free kick…'],
+  counter: ['Lightning counter-attack from {team}!', '{team} break forward!', '{team} win it back and counter quickly!'],
+  pen: ['PENALTY to {team}! {s} steps up…', 'The referee points to the spot! {s} will take it.'],
+  goal: ['GOAL!!! {s} scores for {team}!', 'GOAL! {s} beats {gk}!', 'GOAL!!! What a finish from {s}!', 'GOAL! {s} keeps his cool!'],
+  goalHead: ['GOAL!!! A header from {s}!', 'GOAL! Unstoppable header from {s}!'],
+  goalLong: ['GOAL!!! A stunning strike from {s}!', 'GOAL! {s} fires it into the top corner!'],
+  goalPen: ['GOAL! {s} converts the penalty!', 'GOAL! Perfect penalty from {s}!'],
+  save: ['Save from {gk}!', 'Good stop by {gk}!', '{gk} gets in the way!', '{gk} gathers it comfortably.'],
+  bigsave: ['Incredible reflex save from {gk}!!', 'What a save from {gk}!!'],
+  miss: ["{s}'s shot goes wide.", '{s} misses the target.', 'Over the bar! {s} leaned back too far.', 'Wasteful from {s}!'],
+  post: ['OFF THE POST! {s} is unlucky!', 'The crossbar denies {s}!'],
+  block: ["{s}'s shot is blocked.", 'Blocked by the defence!', 'A defender throws himself in front of {s}.'],
+  penMiss: ['Penalty missed by {s}!', '{gk} saves the penalty from {s}!!'],
+  offside: ['{s} is caught offside.', 'Flag up, {s} is offside.'],
+  yellow: ['Yellow card for {p}.', '{p} goes into the book.'],
+  red: ['RED CARD! {p} is sent off!', '{p} is sent off! {team} are down to ten.'],
+  secondY: ['Second yellow for {p}, he is sent off!'],
+  corner: ['Corner to {team}.'],
+  injury: ['{p} is injured and cannot continue.', '{p} is hurt and has to come off.'],
+  sub: ['{team} substitution: {in} replaces {out}.'],
+  quiet: ['{team} keep the ball moving.', 'A spell of possession for {team}.', '{team} probe for an opening.', 'The game is being played in midfield.', '{team} build patiently from the back.'],
+};
+// Commentaires dans la langue courante (français sur le site)
+const T_ = new Proxy({}, { get: (_, k) => (LANG === 'en' ? T_EN : T_FR)[k] });
 // Les très gros écarts de niveau ont un effet amorti (pas de scores fleuves à répétition)
 const soft = (x) => (Math.abs(x) <= 1.2 ? x : Math.sign(x) * (1.2 + (Math.abs(x) - 1.2) * 0.5));
 const fill = (tpls, o) => (Array.isArray(tpls) ? R.pick(tpls) : tpls).replace(/\{(\w+)\}/g, (_, k) => (o[k] ?? ''));
@@ -179,17 +213,17 @@ export class MatchSim {
   endPeriod() {
     const g0 = this.sides[0].goals, g1 = this.sides[1].goals;
     if (this.period === 1) {
-      this.ev({ type: 'ht', t: -1, text: `Mi-temps : ${this.sides[0].club.name} ${g0} - ${g1} ${this.sides[1].club.name}` });
+      this.ev({ type: 'ht', t: -1, text: L(`Mi-temps : ${this.sides[0].club.name} ${g0} - ${g1} ${this.sides[1].club.name}`, `Half-time: ${this.sides[0].club.name} ${g0} - ${g1} ${this.sides[1].club.name}`) });
       this.period = 2; this.minute = 45; this.extra = 0; this.added = R.int(2, 6);
       this.halftime = true;
     } else if (this.period === 2) {
       if (this.ko && g0 === g1) {
-        this.ev({ type: 'et', t: -1, text: 'Égalité ! Place à la prolongation.' });
+        this.ev({ type: 'et', t: -1, text: L('Égalité ! Place à la prolongation.', 'All square! We are going to extra time.') });
         this.period = 3; this.minute = 90; this.extra = 0; this.added = R.int(0, 2);
         for (const s of this.sides) s.maxSubs = 6;
       } else this.finish();
     } else if (this.period === 3) {
-      this.ev({ type: 'info', t: -1, text: 'Fin de la première période de prolongation.' });
+      this.ev({ type: 'info', t: -1, text: L('Fin de la première période de prolongation.', 'End of the first period of extra time.') });
       this.period = 4; this.minute = 105; this.extra = 0; this.added = R.int(0, 3);
     } else {
       if (g0 === g1) this.shootout();
@@ -340,24 +374,24 @@ export class MatchSim {
     const gs = gkp ? (0.6 * gkp.attr[A.arr] + 0.4 * gkp.attr[A.sor]) * condFactor(D.cond[gkId] ?? 90) * (gkp.pos === 'GB' ? 1 : 0.4) : 2;
     const pGoal = clamp(xg * (1 + 0.07 * (sk - 13)) * (1 - 0.05 * (gs - 13)), 0.01, 0.9);
     this.stats.sh[t]++; this.stats.xg[t] += xg;
-    const names = { s: pshort(sp), a: ap ? pshort(ap) : '', gk: gkp ? pshort(gkp) : 'le gardien', team: T.club.name };
+    const names = { s: pshort(sp), a: ap ? pshort(ap) : '', gk: gkp ? pshort(gkp) : L('le gardien', 'the keeper'), team: T.club.name };
     if (!this.quiet && (xg > 0.1 || R.chance(0.5))) {
       const tpl = T_[type] || T_.dribble;
       this.ev({ type: 'chance', t, pid: s, text: fill(ap || !tpl.some((x) => x.includes('{a}')) ? tpl : T_.dribble, names) });
     }
     if (R.chance(pGoal)) {
       if (type !== 'pen' && R.chance(0.05)) {
-        const why = R.pick(['hors-jeu', 'hors-jeu', 'faute préalable', 'main']);
+        const why = R.pick(L(['hors-jeu', 'hors-jeu', 'faute préalable', 'main'], ['offside', 'offside', 'foul in the build-up', 'handball']));
         if (R.chance(0.25)) {
           ph.k = 'vargoal';
           this.stats.on[t]++;
-          this.ev({ type: 'var', t, pid: s, text: `${pshort(sp)} pense avoir marqué… vérification VAR en cours.` });
-          this.ev({ type: 'vardis', t, pid: s, text: `But refusé par la VAR (${why}) !` });
+          this.ev({ type: 'var', t, pid: s, text: L(`${pshort(sp)} pense avoir marqué… vérification VAR en cours.`, `${pshort(sp)} thinks he has scored… VAR check in progress.`) });
+          this.ev({ type: 'vardis', t, pid: s, text: L(`But refusé par la VAR (${why}) !`, `Goal ruled out by VAR (${why})!`) });
           return;
         }
-        this.ev({ type: 'var', t, pid: s, text: `${pshort(sp)} marque… vérification VAR en cours.` });
+        this.ev({ type: 'var', t, pid: s, text: L(`${pshort(sp)} marque… vérification VAR en cours.`, `${pshort(sp)} scores… VAR check in progress.`) });
         this.goal(t, s, a, type, ph);
-        this.ev({ type: 'varok', t, text: 'La VAR valide le but !' });
+        this.ev({ type: 'varok', t, text: L('La VAR valide le but !', 'VAR confirms the goal!') });
         return;
       }
       this.goal(t, s, a, type, ph);
@@ -402,10 +436,10 @@ export class MatchSim {
     this.addR(D, gk, -0.3);
     for (const sl of D.slots) if (sl.pid && POS_GROUP[sl.pos] === 'DEF') this.addR(D, sl.pid, -0.12);
     const sp = this.P(s), gkp = gk ? this.P(gk) : null;
-    const names = { s: pshort(sp), gk: gkp ? pshort(gkp) : 'le gardien', team: T.club.name };
+    const names = { s: pshort(sp), gk: gkp ? pshort(gkp) : L('le gardien', 'the keeper'), team: T.club.name };
     const tpl = type === 'pen' ? T_.goalPen : type === 'header_sp' || (type === 'cross' && R.chance(0.7)) ? T_.goalHead : type === 'long' || type === 'fk' ? T_.goalLong : T_.goal;
     this.goals.push({ min: this.clock(), m: this.minute, t, s, a, type });
-    this.ev({ type: 'goal', t, pid: s, pid2: a, text: fill(tpl, names) + (a ? ` (passe de ${pshort(this.P(a))})` : ''), score: [this.sides[0].goals, this.sides[1].goals] });
+    this.ev({ type: 'goal', t, pid: s, pid2: a, text: fill(tpl, names) + (a ? L(` (passe de ${pshort(this.P(a))})`, ` (assist: ${pshort(this.P(a))})`) : ''), score: [this.sides[0].goals, this.sides[1].goals] });
   }
 
   penalty(t) {
@@ -429,7 +463,7 @@ export class MatchSim {
       const saved = R.chance(0.6);
       if (saved) { this.stats.on[t]++; this.addR(D, gk, 0.8); }
       this.addR(T, taker, -0.6);
-      this.ev({ type: 'penmiss', t, pid: taker, text: fill(T_.penMiss, { s: pshort(tp), gk: gkp ? pshort(gkp) : 'le gardien' }) });
+      this.ev({ type: 'penmiss', t, pid: taker, text: fill(T_.penMiss, { s: pshort(tp), gk: gkp ? pshort(gkp) : L('le gardien', 'the keeper') }) });
     }
   }
 
@@ -635,7 +669,7 @@ export class MatchSim {
     };
     const ord = [order(this.sides[0]), order(this.sides[1])];
     const s = [0, 0], k = [0, 0];
-    this.ev({ type: 'info', t: -1, text: 'Séance de tirs au but !' });
+    this.ev({ type: 'info', t: -1, text: L('Séance de tirs au but !', 'Penalty shoot-out!') });
     let finished = false;
     for (let r = 0; r < 40 && !finished; r++) {
       for (const t of [0, 1]) {
@@ -647,7 +681,7 @@ export class MatchSim {
         const ok = R.chance(clamp(0.74 + 0.012 * ((a[A.fin] + a[A.sgf] + a[A.cpa]) / 3 - 13) - 0.012 * (gs - 13), 0.5, 0.9));
         k[t]++;
         if (ok) s[t]++;
-        this.ev({ type: 'pk', t, pid: tk, ok, text: `${T.club.short} : ${pshort(this.P(tk))} ${ok ? 'marque' : 'manque'} (${s[0]}-${s[1]})` });
+        this.ev({ type: 'pk', t, pid: tk, ok, text: L(`${T.club.short} : ${pshort(this.P(tk))} ${ok ? 'marque' : 'manque'} (${s[0]}-${s[1]})`, `${T.club.short}: ${pshort(this.P(tk))} ${ok ? 'scores' : 'misses'} (${s[0]}-${s[1]})`) });
         if (r < 5) {
           if (s[0] + (5 - k[0]) < s[1] || s[1] + (5 - k[1]) < s[0]) { finished = true; break; }
         }
@@ -688,8 +722,8 @@ export class MatchSim {
       }
     }
     this.motm = motm;
-    const ptxt = this.pens ? ` (${this.pens[0]}-${this.pens[1]} t.a.b.)` : '';
-    this.ev({ type: 'ft', t: -1, text: `Fin du match : ${this.sides[0].club.name} ${g[0]} - ${g[1]} ${this.sides[1].club.name}${ptxt}` });
+    const ptxt = this.pens ? L(` (${this.pens[0]}-${this.pens[1]} t.a.b.)`, ` (${this.pens[0]}-${this.pens[1]} on pens)`) : '';
+    this.ev({ type: 'ft', t: -1, text: L(`Fin du match : ${this.sides[0].club.name} ${g[0]} - ${g[1]} ${this.sides[1].club.name}${ptxt}`, `Full time: ${this.sides[0].club.name} ${g[0]} - ${g[1]} ${this.sides[1].club.name}${ptxt}`) });
   }
 }
 

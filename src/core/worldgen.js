@@ -10,6 +10,7 @@ import { projectRevenue, setBudgets, wageBill } from './finance.js';
 import { scheduleLeague, scheduleCup, scheduleConti, contiQualifiers, rebuildIndexes, maxRoundsOf } from './competitions.js';
 import { bestFormation, makeTactics, refreshClubStrength, autoLineup } from './team.js';
 import { setObjectives } from './board.js';
+import { L } from './i18n.js';
 
 const D1_REP = [92, 88, 85, 81, 78, 76, 74, 72, 70, 68, 66, 64, 63, 61, 60, 58, 57, 55];
 const C_ADJ = { EN: 2, ES: 1, IT: 0, DE: 0, FR: -2 };
@@ -269,7 +270,7 @@ export function generateRealWorld(seed) {
   const state = baseState(seed, Y);
   state.mode = 'real';
   state.countries = REAL_COUNTRIES.map((c) => ({ ...c }));
-  state.contiName = REAL_CONTI;
+  state.contiName = L(REAL_CONTI, 'European Cup');
   applyWorld(state);
   const data = new Map();
   for (const C of LEAGUE_COUNTRIES) {

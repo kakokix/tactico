@@ -2,6 +2,7 @@
 import { R } from './rng.js';
 import { LEAGUE_COUNTRIES, contiName } from './constants.js';
 import { leagueDays } from './dates.js';
+import { L } from './i18n.js';
 
 export function newMatch(state, c, rd, day, h, a, opts = {}) {
   const id = 'm' + (state.nextMid++).toString(36);
@@ -157,7 +158,7 @@ export function scheduleConti(state, qualified) {
     for (const c of g) grp.table[c] = newRow(c);
     conti.groups.push(grp);
     PAT.forEach((md, k) => {
-      for (const [x, y] of md) newMatch(state, 'CONT', 'g' + (k + 1), state.sd.conti.groups[k], g[x], g[y], { lb: `Groupe ${grp.n} · J${k + 1}` });
+      for (const [x, y] of md) newMatch(state, 'CONT', 'g' + (k + 1), state.sd.conti.groups[k], g[x], g[y], { lb: L(`Groupe ${grp.n} · J${k + 1}`, `Group ${grp.n} · MD${k + 1}`) });
     });
   });
   conti.ko = state.sd.conti.ko.map((s) => ({ ...s, mids: [] }));
@@ -170,7 +171,7 @@ function progressConti(state, conti, notify) {
     const gm = Object.values(state.matches).filter((m) => m.c === 'CONT' && m.rd[0] === 'g');
     if (!gm.length || !gm.every((m) => m.done)) return;
     const tops = conti.groups.map((g) => sortRows(Object.values(g.table), state).map((r) => r.c));
-    for (const g of tops) { conti.out[g[2]] = 'Phase de groupes'; conti.out[g[3]] = 'Phase de groupes'; }
+    for (const g of tops) { conti.out[g[2]] = L('Phase de groupes', 'Group stage'); conti.out[g[3]] = L('Phase de groupes', 'Group stage'); }
     const pairs = [[tops[0][0], tops[1][1]], [tops[1][0], tops[0][1]], [tops[2][0], tops[3][1]], [tops[3][0], tops[2][1]]];
     const st = conti.ko[0];
     for (const [h, a] of pairs) st.mids.push(newMatch(state, 'CONT', 'qf', st.day, h, a, { ko: true, lb: st.label }).id);

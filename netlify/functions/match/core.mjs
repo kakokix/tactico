@@ -2,6 +2,9 @@
 import { construireMonde, GRAINE } from '../../../roblox/outils/monde.mjs';
 import { createSim } from '../../../src/core/game.js';
 import { R } from '../../../src/core/rng.js';
+import { setLang } from '../../../src/core/i18n.js';
+
+setLang('en'); // le jeu Roblox est en anglais (commentaires du match)
 
 let monde = null; // le monde est construit une fois par instance de la fonction
 export function getMonde() {
@@ -14,7 +17,7 @@ const FINS = [45, 90, 105, 120];
 export function simulerMatch(h, a, graine) {
   const st = getMonde();
   if (typeof h !== 'string' || typeof a !== 'string' || !st.clubs[h] || !st.clubs[a] || h === a) {
-    return { error: 'Clubs invalides.' };
+    return { error: 'Invalid clubs.' };
   }
   let s = Number.parseInt(graine ?? '', 10);
   if (!Number.isFinite(s) || s <= 0) s = (Date.now() % 2147483647) + 1;

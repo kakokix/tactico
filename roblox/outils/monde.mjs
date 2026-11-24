@@ -139,6 +139,8 @@ export function construireMonde(graine = GRAINE) {
 }
 
 // Données compactes pour Roblox
+// Noms des pays en anglais (le jeu Roblox est en anglais)
+const PAYS_EN = { FR: 'France', EN: 'England', ES: 'Spain', IT: 'Italy', DE: 'Germany' };
 export function exporterMonde(state) {
   const clubs = [];
   for (const C of REAL_COUNTRIES) {
@@ -159,7 +161,7 @@ export function exporterMonde(state) {
   }
   return {
     v: VERSION_MONDE, graine: state.seed ?? GRAINE,
-    pays: REAL_COUNTRIES.map((C) => ({ code: C.code, nom: C.name, d1: C.d1, d2: C.d2 })),
+    pays: REAL_COUNTRIES.map((C) => ({ code: C.code, nom: PAYS_EN[C.code] || C.name, d1: C.d1, d2: C.d2 })),
     coupes: COUPES, clubs,
   };
 }

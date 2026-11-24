@@ -13,6 +13,7 @@ import { createPlayer } from './player.js';
 import { projectRevenue } from './finance.js';
 import { refreshClubStrength, bestFormation, autoLineup } from './team.js';
 import { userTrophy } from './game.js';
+import { L, ordL, paysL } from './i18n.js';
 
 function leagueAwards(state, compId) {
   const comp = state.comps[compId];
@@ -23,9 +24,9 @@ function leagueAwards(state, compId) {
   const best = ps.filter((p) => p.st.apps >= 20).sort((a, b) => avgRating(b) - avgRating(a))[0];
   const young = ps.filter((p) => p.st.apps >= 12 && p.age <= 21).sort((a, b) => avgRating(b) - avgRating(a))[0];
   const out = [];
-  if (scorer) out.push({ k: 'Meilleur buteur', p: scorer.id, n: pname(scorer), c: scorer.club, v: `${lg(scorer)} buts en championnat` });
-  if (best) out.push({ k: 'Joueur de la saison', p: best.id, n: pname(best), c: best.club, v: `note ${avgRating(best).toFixed(2)}` });
-  if (young) out.push({ k: 'Meilleur jeune', p: young.id, n: pname(young), c: young.club, v: `note ${avgRating(young).toFixed(2)}` });
+  if (scorer) out.push({ k: L('Meilleur buteur', 'Top scorer'), p: scorer.id, n: pname(scorer), c: scorer.club, v: L(`${lg(scorer)} buts en championnat`, `${lg(scorer)} league goals`) });
+  if (best) out.push({ k: L('Joueur de la saison', 'Player of the season'), p: best.id, n: pname(best), c: best.club, v: L(`note ${avgRating(best).toFixed(2)}`, `rating ${avgRating(best).toFixed(2)}`) });
+  if (young) out.push({ k: L('Meilleur jeune', 'Best young player'), p: young.id, n: pname(young), c: young.club, v: L(`note ${avgRating(young).toFixed(2)}`, `rating ${avgRating(young).toFixed(2)}`) });
   return out;
 }
 
@@ -56,7 +57,7 @@ function simTie(state, h, a, neutral) {
   const wg = R.weighted([1, 2, 3], [5, 4, 1]);
   const lg = R.int(0, wg - 1);
   const pens = R.chance(0.18);
-  const sc = pens ? (() => { const g = R.int(0, 2); return `${g}-${g}, t.a.b.`; })() : hw ? `${wg}-${lg}` : `${lg}-${wg}`;
+  const sc = pens ? (() => { const g = R.int(0, 2); return L(`${g}-${g}, t.a.b.`, `${g}-${g}, on pens`); })() : hw ? `${wg}-${lg}` : `${lg}-${wg}`;
   return { w: hw ? h : a, l: hw ? a : h, sc };
 }
 
@@ -71,14 +72,14 @@ function promotions(state, C, finals, report) {
     const s1 = simTie(state, t2[2], t2[5]), s2 = simTie(state, t2[3], t2[4]);
     const f = simTie(state, s1.w, s2.w, true);
     up.push(f.w);
-    notes.push(`Barrages de ${C.d2} : ${nm(s1.w)} élimine ${nm(s1.l)} (${s1.sc}), ${nm(s2.w)} élimine ${nm(s2.l)} (${s2.sc}). Finale : ${nm(f.w)} bat ${nm(f.l)} (${f.sc}) et monte.`);
-    for (const x of [s1, s2, f]) for (const id of [x.w, x.l]) if (id === state.user) addMsg(state, { from: 'Adjoint', kind: 'board', prio: 1, title: 'Barrages d\'accession', body: notes[notes.length - 1] });
+    notes.push(L(`Barrages de ${C.d2} : ${nm(s1.w)} élimine ${nm(s1.l)} (${s1.sc}), ${nm(s2.w)} élimine ${nm(s2.l)} (${s2.sc}). Finale : ${nm(f.w)} bat ${nm(f.l)} (${f.sc}) et monte.`, `${C.d2} play-offs: ${nm(s1.w)} beat ${nm(s1.l)} (${s1.sc}), ${nm(s2.w)} beat ${nm(s2.l)} (${s2.sc}). Final: ${nm(f.w)} beat ${nm(f.l)} (${f.sc}) and go up.`));
+    for (const x of [s1, s2, f]) for (const id of [x.w, x.l]) if (id === state.user) addMsg(state, { from: L('Adjoint', 'Assistant'), kind: 'board', prio: 1, title: L('Barrages d\'accession', 'Promotion play-offs'), body: notes[notes.length - 1] });
   } else if (C.po === 'barrage' && t1.length >= 3 && t2.length >= 3) {
     const a = t1[t1.length - (C.down || 2) - 1], b = t2[(C.up || 2)];
     const r = simTie(state, a, b, true);
     if (r.w === b) { down.push(a); up.push(b); }
-    notes.push(`Barrage ${C.d1}/${C.d2} : ${nm(r.w)} bat ${nm(r.l)} (${r.sc}) et ${r.w === a ? `reste en ${C.d1}` : `monte en ${C.d1}`}.`);
-    if (a === state.user || b === state.user) addMsg(state, { from: 'Adjoint', kind: 'board', prio: 1, title: 'Barrage', body: notes[0] });
+    notes.push(L(`Barrage ${C.d1}/${C.d2} : ${nm(r.w)} bat ${nm(r.l)} (${r.sc}) et ${r.w === a ? `reste en ${C.d1}` : `monte en ${C.d1}`}.`, `${C.d1}/${C.d2} play-off: ${nm(r.w)} beat ${nm(r.l)} (${r.sc}) and ${r.w === a ? `stay in ${C.d1}` : `go up to ${C.d1}`}.`));
+    if (a === state.user || b === state.user) addMsg(state, { from: L('Adjoint', 'Assistant'), kind: 'board', prio: 1, title: L('Barrage', 'Play-off'), body: notes[0] });
   }
   for (const n of notes) addNews(state, n, 'league');
   if (report) (report.po ||= []).push(...notes);
@@ -107,7 +108,7 @@ export function endSeason(state, nt) {
     const champ = state.clubs[rows[0].c];
     champ.trophies.push({ s: Y, n: comp.name, k: comp.level === 1 ? 'league' : 'league2' });
     champ.rep = clamp(champ.rep + (comp.level === 1 ? 3 : 2), 1, 99);
-    addNews(state, `🏆 ${champ.name} est champion de ${comp.name} ${Y}-${(Y + 1) % 100} !`, 'trophy', { c: champ.id });
+    addNews(state, L(`🏆 ${champ.name} est champion de ${comp.name} ${Y}-${(Y + 1) % 100} !`, `🏆 ${champ.name} are ${comp.name} champions ${Y}-${(Y + 1) % 100}!`), 'trophy', { c: champ.id });
     const awards = leagueAwards(state, cid);
     report.leagues.push({ id: cid, name: comp.name, level: comp.level, champ: champ.id, table: rows.map((r) => r.c), awards });
   }
@@ -125,7 +126,7 @@ export function endSeason(state, nt) {
   if (gold.length) {
     const p = gold[0][0];
     report.gold = { p: p.id, n: pname(p), c: p.club, top: gold.slice(0, 5).map(([x]) => ({ p: x.id, n: pname(x), c: x.club })) };
-    addNews(state, `⭐ ${pname(p)} (${state.clubs[p.club].name}) remporte le Tactico d'Or ${Y + 1} !`, 'award');
+    addNews(state, L(`⭐ ${pname(p)} (${state.clubs[p.club].name}) remporte le Tactico d'Or ${Y + 1} !`, `⭐ ${pname(p)} (${state.clubs[p.club].name}) wins the ${Y + 1} Tactico Golden Ball!`), 'award');
   }
 
   // Montées, descentes et barrages (décidés avant le bilan de l'entraîneur)
@@ -206,7 +207,7 @@ export function endSeason(state, nt) {
         if (p.age >= 19) {
           club.youth.splice(club.youth.indexOf(id), 1);
           p.youth = false; club.squad.push(id); p.until = Y + 3;
-          addMsg(state, { from: 'Centre de formation', kind: 'youth', title: `${pname(p)} rejoint l'équipe première`, body: `À ${p.age} ans, ${pname(p)} quitte le centre de formation et intègre l'effectif professionnel.`, pid: p.id });
+          addMsg(state, { from: L('Centre de formation', 'Youth academy'), kind: 'youth', title: L(`${pname(p)} rejoint l'équipe première`, `${pname(p)} joins the first team`), body: L(`À ${p.age} ans, ${pname(p)} quitte le centre de formation et intègre l'effectif professionnel.`, `At ${p.age}, ${pname(p)} leaves the youth academy and joins the senior squad.`), pid: p.id });
         }
         continue;
       }
@@ -226,15 +227,15 @@ export function endSeason(state, nt) {
     if (!p.club && p.age >= 31) pr += 0.3;
     if (!p.club && p.age >= 30 && p.ovr < 55) pr += 0.4;
     if (pr > 0 && R.chance(pr)) {
-      if (p.ovr >= 78) retiredNotable.push(`${pname(p)} (${p.age} ans)`);
-      if (p.club === state.user && state.user) addMsg(state, { from: 'Adjoint', kind: 'retire', title: `${pname(p)} prend sa retraite`, body: `À ${p.age} ans, ${pname(p)} raccroche les crampons. Merci pour tout !` });
+      if (p.ovr >= 78) retiredNotable.push(L(`${pname(p)} (${p.age} ans)`, `${pname(p)} (${p.age})`));
+      if (p.club === state.user && state.user) addMsg(state, { from: L('Adjoint', 'Assistant'), kind: 'retire', title: L(`${pname(p)} prend sa retraite`, `${pname(p)} retires`), body: L(`À ${p.age} ans, ${pname(p)} raccroche les crampons. Merci pour tout !`, `At ${p.age}, ${pname(p)} hangs up his boots. Thanks for everything!`) });
       detachPlayer(state, p);
       delete state.players[p.id];
     }
   }
   state.free = state.free.filter((id) => state.players[id]);
-  if (retiredNotable.length) addNews(state, `Retraites : ${retiredNotable.slice(0, 6).join(', ')}.`, 'retire');
-  if (state.user && userExpired.length) addMsg(state, { from: 'Directeur sportif', kind: 'contract', title: 'Fins de contrat', body: `Ces joueurs ont quitté le club en fin de contrat :\n${userExpired.map((n) => `• ${n}`).join('\n')}`, prio: 1 });
+  if (retiredNotable.length) addNews(state, L(`Retraites : ${retiredNotable.slice(0, 6).join(', ')}.`, `Retirements: ${retiredNotable.slice(0, 6).join(', ')}.`), 'retire');
+  if (state.user && userExpired.length) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'contract', title: L('Fins de contrat', 'Contracts ended'), body: L(`Ces joueurs ont quitté le club en fin de contrat :\n${userExpired.map((n) => `• ${n}`).join('\n')}`, `These players left the club at the end of their contract:\n${userExpired.map((n) => `• ${n}`).join('\n')}`), prio: 1 });
 
   // Montées / descentes
   for (const C of LEAGUE_COUNTRIES) {
@@ -244,7 +245,7 @@ export function endSeason(state, nt) {
     c2.clubs = c2.clubs.filter((x) => !up.includes(x)).concat(down);
     for (const id of up) { const k = state.clubs[id]; k.league = c1.id; k.rep = clamp(Math.max(k.rep + 3, 52), 1, 99); }
     for (const id of down) { const k = state.clubs[id]; k.league = c2.id; k.rep = clamp(Math.min(k.rep - 4, 58), 1, 99); }
-    addNews(state, `${C.name} : montée de ${up.map((x) => state.clubs[x].name).join(', ')} ; relégation de ${down.map((x) => state.clubs[x].name).join(', ')}.`, 'league');
+    addNews(state, L(`${C.name} : montée de ${up.map((x) => state.clubs[x].name).join(', ')} ; relégation de ${down.map((x) => state.clubs[x].name).join(', ')}.`, `${paysL(C.name)}: promoted ${up.map((x) => state.clubs[x].name).join(', ')}; relegated ${down.map((x) => state.clubs[x].name).join(', ')}.`), 'league');
   }
   for (const club of Object.values(state.clubs)) {
     const lvl = state.comps[club.league].level;
@@ -303,12 +304,12 @@ export function endSeason(state, nt) {
   if (state.user) {
     const club = state.clubs[state.user];
     if (report.user?.sacked) {
-      sackUser(state, `Saison décevante (${report.user.pos}e, objectif : ${report.user.obj.toLowerCase()}).`);
+      sackUser(state, L(`Saison décevante (${report.user.pos}e, objectif : ${report.user.obj.toLowerCase()}).`, `Disappointing season (${ordL(report.user.pos)}, objective: ${report.user.obj.toLowerCase()}).`));
     } else {
       addMsg(state, {
-        from: 'Président', kind: 'board', prio: 2, cid: club.id,
-        title: `Saison ${Y + 1}-${(Y + 2) % 100} : vos objectifs`,
-        body: `Nouvelle saison pour ${club.name} en ${state.comps[club.league].name}.\nObjectif : ${club.obj.label.toLowerCase()}.\nBudget transferts : ${Math.round(club.tBudget / 1e5) / 10} M€.\nLe mercato d'été est ouvert jusqu'au 31 août.`,
+        from: L('Président', 'Chairman'), kind: 'board', prio: 2, cid: club.id,
+        title: L(`Saison ${Y + 1}-${(Y + 2) % 100} : vos objectifs`, `Season ${Y + 1}-${(Y + 2) % 100}: your objectives`),
+        body: L(`Nouvelle saison pour ${club.name} en ${state.comps[club.league].name}.\nObjectif : ${club.obj.label.toLowerCase()}.\nBudget transferts : ${Math.round(club.tBudget / 1e5) / 10} M€.\nLe mercato d'été est ouvert jusqu'au 31 août.`, `A new season for ${club.name} in the ${state.comps[club.league].name}.\nObjective: ${club.obj.label.toLowerCase()}.\nTransfer budget: €${Math.round(club.tBudget / 1e5) / 10}M.\nThe summer transfer window is open until 31 August.`),
       });
       spontaneousOffers(state, true);
     }

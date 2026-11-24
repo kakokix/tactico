@@ -6,6 +6,7 @@ import { makeName } from './player.js';
 import { autoLineup, makeTactics, refreshClubStrength } from './team.js';
 import { setBudgets } from './finance.js';
 import { LEAGUE_COUNTRIES } from './constants.js';
+import { L, ordL } from './i18n.js';
 
 export function computeObjective(state, club) {
   const comp = state.comps[club.league];
@@ -16,22 +17,22 @@ export function computeObjective(state, club) {
   const safe = n - (C.down || 3) - (C.po === 'barrage' ? 1 : 0);
   if (comp.level === 1) {
     const eu = C.conti || 3;
-    if (r <= 1) return { key: 'title', label: 'Remporter le championnat', target: 1 };
-    if (r <= eu) return { key: 'podium', label: `Finir dans le top ${eu} (qualification européenne)`, target: eu };
+    if (r <= 1) return { key: 'title', label: L('Remporter le championnat', 'Win the league'), target: 1 };
+    if (r <= eu) return { key: 'podium', label: L(`Finir dans le top ${eu} (qualification européenne)`, `Finish in the top ${eu} (European qualification)`), target: eu };
     const t6 = Math.round(n / 3);
-    if (r <= t6) return { key: 'top6', label: `Finir dans le top ${t6}`, target: t6 };
+    if (r <= t6) return { key: 'top6', label: L(`Finir dans le top ${t6}`, `Finish in the top ${t6}`), target: t6 };
     const half = Math.floor(n / 2);
-    if (r <= half) return { key: 'top10', label: `Finir dans la première moitié (top ${half})`, target: half };
-    if (r <= n - 6) return { key: 'top14', label: `Finir dans le top ${n - 4}`, target: n - 4 };
-    return { key: 'stay', label: 'Assurer le maintien', target: safe };
+    if (r <= half) return { key: 'top10', label: L(`Finir dans la première moitié (top ${half})`, `Finish in the top half (top ${half})`), target: half };
+    if (r <= n - 6) return { key: 'top14', label: L(`Finir dans le top ${n - 4}`, `Finish in the top ${n - 4}`), target: n - 4 };
+    return { key: 'stay', label: L('Assurer le maintien', 'Avoid relegation'), target: safe };
   }
   const upN = (C.up || 3);
   const poN = C.po === 'playoff' ? 6 : C.po === 'barrage' ? upN + 1 : upN;
-  if (r <= upN) return { key: 'promo', label: `Monter directement (top ${upN})`, target: upN };
-  if (r <= poN + 1) return { key: 'top6', label: poN > upN ? `Jouer la montée (top ${poN})` : `Jouer la montée (top ${Math.round(n / 3)})`, target: poN > upN ? poN : Math.round(n / 3) };
+  if (r <= upN) return { key: 'promo', label: L(`Monter directement (top ${upN})`, `Win automatic promotion (top ${upN})`), target: upN };
+  if (r <= poN + 1) return { key: 'top6', label: poN > upN ? L(`Jouer la montée (top ${poN})`, `Push for promotion (top ${poN})`) : L(`Jouer la montée (top ${Math.round(n / 3)})`, `Push for promotion (top ${Math.round(n / 3)})`), target: poN > upN ? poN : Math.round(n / 3) };
   const half = Math.round(n * 2 / 3);
-  if (r <= half) return { key: 'top12', label: `Finir dans le top ${half}`, target: half };
-  return { key: 'stay', label: 'Assurer le maintien', target: n - 3 };
+  if (r <= half) return { key: 'top12', label: L(`Finir dans le top ${half}`, `Finish in the top ${half}`), target: half };
+  return { key: 'stay', label: L('Assurer le maintien', 'Avoid relegation'), target: n - 3 };
 }
 
 export function setObjectives(state) {
@@ -39,7 +40,7 @@ export function setObjectives(state) {
 }
 
 export function confLabel(c) {
-  return c >= 80 ? 'Excellente' : c >= 60 ? 'Bonne' : c >= 40 ? 'Correcte' : c >= 25 ? 'Fragile' : 'Très faible';
+  return c >= 80 ? L('Excellente', 'Excellent') : c >= 60 ? L('Bonne', 'Good') : c >= 40 ? L('Correcte', 'Fair') : c >= 25 ? L('Fragile', 'Shaky') : L('Très faible', 'Very low');
 }
 
 function bumpConf(state, d) {
@@ -81,10 +82,10 @@ export function boardMonthly(state) {
   const c = state.mgr.conf;
   const month = new Date(state.day * 86400000).getUTCMonth() + 1;
   if (c < 12 && month !== 8 && month !== 9) {
-    sackUser(state, `Les résultats ne sont pas à la hauteur des attentes (${pos}e, objectif : ${club.obj.label.toLowerCase()}).`);
+    sackUser(state, L(`Les résultats ne sont pas à la hauteur des attentes (${pos}e, objectif : ${club.obj.label.toLowerCase()}).`, `Results have not met expectations (${ordL(pos)}, objective: ${club.obj.label.toLowerCase()}).`));
   } else if (c < 30 && !state.flags.warned) {
     state.flags.warned = true;
-    addMsg(state, { from: 'Président', title: 'Le président s\'inquiète', body: `La direction de ${club.name} est très inquiète. Actuellement ${pos}e, l'équipe doit vite redresser la barre (objectif : ${club.obj.label.toLowerCase()}). Votre poste est menacé.`, prio: 2, kind: 'board' });
+    addMsg(state, { from: L('Président', 'Chairman'), title: L('Le président s\'inquiète', 'The chairman is worried'), body: L(`La direction de ${club.name} est très inquiète. Actuellement ${pos}e, l'équipe doit vite redresser la barre (objectif : ${club.obj.label.toLowerCase()}). Votre poste est menacé.`, `The ${club.name} board is very worried. Currently ${ordL(pos)}, the team must turn things around quickly (objective: ${club.obj.label.toLowerCase()}). Your job is under threat.`), prio: 2, kind: 'board' });
   } else if (c >= 45) state.flags.warned = false;
 }
 
@@ -96,8 +97,8 @@ export function sackUser(state, reason) {
   if (cur) cur.to = state.season;
   mgr.career.sacked++;
   mgr.rep = clamp(mgr.rep - 8, 1, 100);
-  addMsg(state, { from: 'Président', title: 'Vous êtes licencié', body: `${club.name} a décidé de mettre fin à votre contrat. ${reason}\n\nVotre carrière continue : consultez les offres d'emploi dans l'onglet Carrière.`, prio: 2, kind: 'sacked' });
-  addNews(state, `${club.name} se sépare de son entraîneur ${mgr.name}.`, 'sack', { c: club.id });
+  addMsg(state, { from: L('Président', 'Chairman'), title: L('Vous êtes licencié', 'You have been sacked'), body: L(`${club.name} a décidé de mettre fin à votre contrat. ${reason}\n\nVotre carrière continue : consultez les offres d'emploi dans l'onglet Carrière.`, `${club.name} have decided to terminate your contract. ${reason}\n\nYour career goes on: check the job offers in the Career screen.`), prio: 2, kind: 'sacked' });
+  addNews(state, L(`${club.name} se sépare de son entraîneur ${mgr.name}.`, `${club.name} part ways with manager ${mgr.name}.`), 'sack', { c: club.id });
   club.vacant = true;
   club.vacantSince = state.day;
   club.autoUser = false;
@@ -127,7 +128,7 @@ export function aiManagerChanges(state) {
     const gap = pos - club.obj.target;
     const p = gap > 8 ? 0.35 : gap > 5 ? 0.15 : 0;
     if (p && R.chance(p)) {
-      addNews(state, `${club.name} limoge son entraîneur ${club.mgr.fn} ${club.mgr.ln} (${pos}e).`, 'sack', { c: club.id });
+      addNews(state, L(`${club.name} limoge son entraîneur ${club.mgr.fn} ${club.mgr.ln} (${pos}e).`, `${club.name} sack manager ${club.mgr.fn} ${club.mgr.ln} (${ordL(pos)}).`), 'sack', { c: club.id });
       club.vacant = true;
       club.vacantSince = state.day;
     }
@@ -142,7 +143,7 @@ export function fillVacancies(state) {
     const pendingUser = (state.mgr?.apps || []).some((a) => a.club === club.id);
     if (waited > 12 && !pendingUser && R.chance(0.55)) {
       newAIManager(state, club);
-      addNews(state, `${club.name} nomme ${club.mgr.fn} ${club.mgr.ln} au poste d'entraîneur.`, 'mgr', { c: club.id });
+      addNews(state, L(`${club.name} nomme ${club.mgr.fn} ${club.mgr.ln} au poste d'entraîneur.`, `${club.name} appoint ${club.mgr.fn} ${club.mgr.ln} as manager.`), 'mgr', { c: club.id });
     }
   }
 }
@@ -173,9 +174,9 @@ export function processApplications(state) {
     const club = state.clubs[a.club];
     if (!club.vacant) continue;
     if (R.chance(jobChance(state, club))) {
-      addMsg(state, { from: club.name, title: `${club.name} vous propose le poste`, body: `Après étude de votre candidature, ${club.name} (${state.comps[club.league].name}) souhaite vous confier son équipe première.`, prio: 2, kind: 'job', act: { type: 'job', club: club.id }, cid: club.id });
+      addMsg(state, { from: club.name, title: L(`${club.name} vous propose le poste`, `${club.name} offer you the job`), body: L(`Après étude de votre candidature, ${club.name} (${state.comps[club.league].name}) souhaite vous confier son équipe première.`, `After reviewing your application, ${club.name} (${state.comps[club.league].name}) would like you to take charge of their first team.`), prio: 2, kind: 'job', act: { type: 'job', club: club.id }, cid: club.id });
     } else {
-      addMsg(state, { from: club.name, title: 'Candidature refusée', body: `${club.name} a choisi un autre profil. Améliorez votre réputation pour viser plus haut.`, kind: 'job', cid: club.id });
+      addMsg(state, { from: club.name, title: L('Candidature refusée', 'Application rejected'), body: L(`${club.name} a choisi un autre profil. Améliorez votre réputation pour viser plus haut.`, `${club.name} chose another candidate. Improve your reputation to aim higher.`), kind: 'job', cid: club.id });
     }
   }
   mgr.apps = keep;
@@ -189,7 +190,7 @@ export function spontaneousOffers(state, endOfSeason = false) {
   if (!state.user) {
     for (const c of open) {
       if (c.rep <= mgr.rep + 12 && R.chance(0.2) && !state.inbox.some((m) => m.act && m.act.type === 'job' && m.act.club === c.id && !m.done)) {
-        addMsg(state, { from: c.name, title: `Offre d'emploi : ${c.name}`, body: `${c.name} (${state.comps[c.league].name}) vous propose de devenir son entraîneur.`, prio: 2, kind: 'job', act: { type: 'job', club: c.id }, cid: c.id });
+        addMsg(state, { from: c.name, title: L(`Offre d'emploi : ${c.name}`, `Job offer: ${c.name}`), body: L(`${c.name} (${state.comps[c.league].name}) vous propose de devenir son entraîneur.`, `${c.name} (${state.comps[c.league].name}) offer you the manager's job.`), prio: 2, kind: 'job', act: { type: 'job', club: c.id }, cid: c.id });
       }
     }
   } else if (endOfSeason) {
@@ -198,7 +199,7 @@ export function spontaneousOffers(state, endOfSeason = false) {
     if (big.length && R.chance(0.55)) {
       const c = R.pick(big);
       c.vacant = true; c.vacantSince = state.day;
-      addMsg(state, { from: c.name, title: `${c.name} veut vous recruter`, body: `${c.name} (${state.comps[c.league].name}, réputation ${c.rep}) souhaite faire de vous son nouvel entraîneur. Acceptez-vous ?`, prio: 2, kind: 'job', act: { type: 'job', club: c.id }, cid: c.id });
+      addMsg(state, { from: c.name, title: L(`${c.name} veut vous recruter`, `${c.name} want to hire you`), body: L(`${c.name} (${state.comps[c.league].name}, réputation ${c.rep}) souhaite faire de vous son nouvel entraîneur. Acceptez-vous ?`, `${c.name} (${state.comps[c.league].name}, reputation ${c.rep}) want you as their new manager. Do you accept?`), prio: 2, kind: 'job', act: { type: 'job', club: c.id }, cid: c.id });
     }
   }
 }
@@ -211,7 +212,7 @@ export function takeJob(state, clubId) {
     const cur = mgr.clubs[mgr.clubs.length - 1];
     if (cur) cur.to = state.season;
     old.vacant = true; old.vacantSince = state.day;
-    addNews(state, `${mgr.name} quitte ${old.name}.`, 'mgr', { c: old.id });
+    addNews(state, L(`${mgr.name} quitte ${old.name}.`, `${mgr.name} leaves ${old.name}.`), 'mgr', { c: old.id });
   }
   state.user = clubId;
   club.vacant = false;
@@ -227,17 +228,17 @@ export function takeJob(state, clubId) {
   const { lineup, bench } = autoLineup(state, club, club.tactics.formation, { rotate: false });
   club.lineup = lineup; club.bench = bench;
   for (const m of state.inbox) if (m.act && m.act.type === 'job') m.done = true;
-  addNews(state, `${mgr.name} est nommé entraîneur de ${club.name}.`, 'mgr', { c: club.id });
-  addMsg(state, { from: 'Président', title: `Bienvenue à ${club.name} !`, body: `Le président vous souhaite la bienvenue. Objectif de la saison : ${club.obj.label.toLowerCase()}.\nBudget transferts : ${Math.round(club.tBudget / 1e5) / 10} M€.`, kind: 'board', cid: club.id });
+  addNews(state, L(`${mgr.name} est nommé entraîneur de ${club.name}.`, `${mgr.name} is appointed manager of ${club.name}.`), 'mgr', { c: club.id });
+  addMsg(state, { from: L('Président', 'Chairman'), title: L(`Bienvenue à ${club.name} !`, `Welcome to ${club.name}!`), body: L(`Le président vous souhaite la bienvenue. Objectif de la saison : ${club.obj.label.toLowerCase()}.\nBudget transferts : ${Math.round(club.tBudget / 1e5) / 10} M€.`, `The chairman welcomes you. Season objective: ${club.obj.label.toLowerCase()}.\nTransfer budget: €${Math.round(club.tBudget / 1e5) / 10}M.`), kind: 'board', cid: club.id });
 }
 
 export function evaluateSeason(state, club, pos) {
   const t = club.obj.target;
   if (pos <= t) {
     const ex = pos <= Math.max(1, t - 3) || (club.obj.key !== 'title' && pos === 1);
-    return { met: true, ex, label: ex ? 'Objectif largement dépassé' : 'Objectif atteint' };
+    return { met: true, ex, label: ex ? L('Objectif largement dépassé', 'Objective far exceeded') : L('Objectif atteint', 'Objective met') };
   }
-  return { met: false, ex: false, bad: pos > t + 4, label: pos > t + 4 ? 'Objectif complètement manqué' : 'Objectif manqué' };
+  return { met: false, ex: false, bad: pos > t + 4, label: pos > t + 4 ? L('Objectif complètement manqué', 'Objective badly missed') : L('Objectif manqué', 'Objective missed') };
 }
 
 export { leagueTable };

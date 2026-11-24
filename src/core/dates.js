@@ -1,4 +1,5 @@
 // Dates : jours numérotés depuis 1970 (UTC).
+import { L } from './i18n.js';
 export const dayOf = (y, m, d) => Math.floor(Date.UTC(y, m - 1, d) / 86400000);
 export function toDate(day) {
   const dt = new Date(day * 86400000);
@@ -8,15 +9,20 @@ const WD = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
 const WDL = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 const MO = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 const MOL = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const WD_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WDL_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MO_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MOL_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 export function fmtDate(day, style = 'short') {
   const t = toDate(day);
-  if (style === 'long') return `${WDL[t.wd]} ${t.d} ${MOL[t.m - 1]} ${t.y}`;
-  if (style === 'dm') return `${t.d} ${MO[t.m - 1]}`;
-  if (style === 'wdm') return `${WD[t.wd]} ${t.d} ${MO[t.m - 1]}`;
-  return `${WD[t.wd]} ${t.d} ${MO[t.m - 1]} ${t.y}`;
+  const wd = L(WD, WD_EN), wdl = L(WDL, WDL_EN), mo = L(MO, MO_EN), mol = L(MOL, MOL_EN);
+  if (style === 'long') return `${wdl[t.wd]} ${t.d} ${mol[t.m - 1]} ${t.y}`;
+  if (style === 'dm') return `${t.d} ${mo[t.m - 1]}`;
+  if (style === 'wdm') return `${wd[t.wd]} ${t.d} ${mo[t.m - 1]}`;
+  return `${wd[t.wd]} ${t.d} ${mo[t.m - 1]} ${t.y}`;
 }
-export const monthName = (m) => MOL[m - 1];
+export const monthName = (m) => L(MOL, MOL_EN)[m - 1];
 
 // Premier jour >= day ayant le jour de semaine wd (0 = dimanche)
 export function nextWeekday(day, wd) {
@@ -38,19 +44,19 @@ export function seasonDates(Y, maxRounds = 34) {
   const league = sat.slice(0, 34);
   const last = sat[Math.min(maxRounds, sat.length) - 1];
   const cup = [
-    { key: 'prelim', label: 'Tour préliminaire', day: W(Y, 9, 23, 3) },
-    { key: 'r32', label: '16es de finale', day: W(Y, 10, 28, 3) },
-    { key: 'r16', label: '8es de finale', day: W(Y, 12, 9, 3) },
-    { key: 'qf', label: 'Quarts de finale', day: W(Y + 1, 1, 27, 3) },
-    { key: 'sf', label: 'Demi-finales', day: W(Y + 1, 4, 7, 3) },
-    { key: 'f', label: 'Finale', day: last + 7 },
+    { key: 'prelim', label: L('Tour préliminaire', 'Preliminary round'), day: W(Y, 9, 23, 3) },
+    { key: 'r32', label: L('16es de finale', 'Round of 32'), day: W(Y, 10, 28, 3) },
+    { key: 'r16', label: L('8es de finale', 'Round of 16'), day: W(Y, 12, 9, 3) },
+    { key: 'qf', label: L('Quarts de finale', 'Quarter-finals'), day: W(Y + 1, 1, 27, 3) },
+    { key: 'sf', label: L('Demi-finales', 'Semi-finals'), day: W(Y + 1, 4, 7, 3) },
+    { key: 'f', label: L('Finale', 'Final'), day: last + 7 },
   ];
   const conti = {
     groups: [W(Y, 9, 15, 2), W(Y, 9, 29, 2), W(Y, 10, 20, 2), W(Y, 11, 3, 2), W(Y, 11, 24, 2), W(Y, 12, 8, 2)],
     ko: [
-      { key: 'qf', label: 'Quarts de finale', day: W(Y + 1, 3, 9, 2) },
-      { key: 'sf', label: 'Demi-finales', day: W(Y + 1, 4, 13, 2) },
-      { key: 'f', label: 'Finale', day: last + 14 },
+      { key: 'qf', label: L('Quarts de finale', 'Quarter-finals'), day: W(Y + 1, 3, 9, 2) },
+      { key: 'sf', label: L('Demi-finales', 'Semi-finals'), day: W(Y + 1, 4, 13, 2) },
+      { key: 'f', label: L('Finale', 'Final'), day: last + 14 },
     ],
   };
   // Mercredis libres pour les journées en semaine (pas de coupe, pas au lendemain d'un match européen)

@@ -13,6 +13,7 @@ import { boardAfterMatch, boardMonthly, aiManagerChanges, fillVacancies, process
 import { genYouth } from './worldgen.js';
 import { TRAINING_FOCUS, FORMATIONS, LEAGUE_COUNTRIES, contiName } from './constants.js';
 import { endSeason } from './season.js';
+import { L, posL } from './i18n.js';
 
 export function startCareer(state, { name, nat, clubId }) {
   const club = state.clubs[clubId];
@@ -25,13 +26,15 @@ export function startCareer(state, { name, nat, clubId }) {
   takeJob(state, clubId);
   state.inbox = state.inbox.filter((m) => m.kind !== 'board');
   addMsg(state, {
-    from: 'Président', kind: 'board', cid: club.id, prio: 1,
-    title: `Bienvenue à ${club.name}, coach !`,
-    body: `Toute l'équipe de ${club.name} est ravie de vous accueillir.\n\nObjectif de la saison : ${club.obj.label.toLowerCase()}.\nBudget transferts : ${fmtMoney(club.tBudget)}.\nMasse salariale max : ${fmtMoney(club.wBudget)} par semaine.\n\nLe mercato est ouvert jusqu'au 31 août. Bonne chance !`,
+    from: L('Président', 'Chairman'), kind: 'board', cid: club.id, prio: 1,
+    title: L(`Bienvenue à ${club.name}, coach !`, `Welcome to ${club.name}, coach!`),
+    body: L(`Toute l'équipe de ${club.name} est ravie de vous accueillir.\n\nObjectif de la saison : ${club.obj.label.toLowerCase()}.\nBudget transferts : ${fmtMoney(club.tBudget)}.\nMasse salariale max : ${fmtMoney(club.wBudget)} par semaine.\n\nLe mercato est ouvert jusqu'au 31 août. Bonne chance !`,
+      `Everyone at ${club.name} is delighted to welcome you.\n\nSeason objective: ${club.obj.label.toLowerCase()}.\nTransfer budget: ${fmtMoney(club.tBudget)}.\nMax wage bill: ${fmtMoney(club.wBudget)} per week.\n\nThe transfer window is open until 31 August. Good luck!`),
   });
   addMsg(state, {
-    from: 'Adjoint', kind: 'tip', title: 'Conseils de votre adjoint',
-    body: "• Réglez votre composition et vos consignes dans Tactique.\n• Surveillez la fraîcheur (%) : faites tourner l'effectif.\n• Le Mercato permet d'acheter, vendre et prêter des joueurs.\n• Votre score au classement mondial monte avec les victoires, les trophées et les objectifs atteints.",
+    from: L('Adjoint', 'Assistant'), kind: 'tip', title: L('Conseils de votre adjoint', 'Advice from your assistant'),
+    body: L("• Réglez votre composition et vos consignes dans Tactique.\n• Surveillez la fraîcheur (%) : faites tourner l'effectif.\n• Le Mercato permet d'acheter, vendre et prêter des joueurs.\n• Votre score au classement mondial monte avec les victoires, les trophées et les objectifs atteints.",
+      '• Set your line-up and instructions in Tactics.\n• Watch your players\' fitness (%) and rotate the squad.\n• The Transfers screen lets you buy players and sign free agents.\n• Your world ranking score goes up with wins, trophies and objectives met.'),
   });
   state.flags.stop = false;
 }
@@ -70,7 +73,7 @@ export function validateUserLineup(state, club) {
   club.lineup = club.lineup.map((id) => {
     const p = state.players[id];
     if (!p || p.club !== club.id || !isAvailable(p) || used.has(id)) {
-      if (p && p.club === club.id && !isAvailable(p)) notes.push(`${pname(p)} est ${p.inj > 0 ? 'blessé' : 'suspendu'}.`);
+      if (p && p.club === club.id && !isAvailable(p)) notes.push(L(`${pname(p)} est ${p.inj > 0 ? 'blessé' : 'suspendu'}.`, `${pname(p)} is ${p.inj > 0 ? 'injured' : 'suspended'}.`));
       return null;
     }
     used.add(id);
@@ -86,7 +89,7 @@ export function validateUserLineup(state, club) {
         const v = (p.pos === s.pos ? 1 : s.pos === 'GB' || p.pos === 'GB' ? 0.2 : 0.75) * p.ovr * condFactor(p.cond);
         if (v > bs) { bs = v; best = p; }
       }
-      if (best) { club.lineup[i] = best.id; used.add(best.id); notes.push(`${pname(best)} est titularisé au poste de ${s.pos}.`); }
+      if (best) { club.lineup[i] = best.id; used.add(best.id); notes.push(L(`${pname(best)} est titularisé au poste de ${s.pos}.`, `${pname(best)} starts at ${posL(s.pos)}.`)); }
     });
   }
   club.bench = (club.bench || []).filter((id) => {
@@ -121,13 +124,14 @@ export function createSim(state, m, { userAuto = true, quiet = false } = {}) {
 }
 
 const INJ = [['Contusion', 3, 8, 30], ['Élongation', 7, 18, 28], ['Entorse de la cheville', 10, 28, 18], ['Déchirure musculaire', 18, 45, 12], ['Blessure au genou', 25, 70, 7], ['Fracture du pied', 40, 90, 4], ['Rupture des ligaments croisés', 150, 240, 1]];
+const INJ_EN = { Contusion: 'Bruise', Élongation: 'Strain', 'Entorse de la cheville': 'Ankle sprain', 'Déchirure musculaire': 'Torn muscle', 'Blessure au genou': 'Knee injury', 'Fracture du pied': 'Broken foot', 'Rupture des ligaments croisés': 'Torn knee ligaments' };
 export function injure(state, p, minor = false) {
   const club = state.clubs[p.club];
   const list = minor ? INJ.slice(0, 2) : INJ;
   const it = R.weighted(list, (x) => x[3]);
   const med = club ? club.fac.med : 2;
   p.inj = Math.max(1, Math.round(R.int(it[1], it[2]) * (1.15 - 0.06 * med)));
-  p.injName = it[0];
+  p.injName = L(it[0], INJ_EN[it[0]] || it[0]);
   return p;
 }
 
@@ -205,7 +209,7 @@ export function applyMatchResult(state, m, sim) {
   if (isUserMatch) userMatchAftermath(state, m, sim);
   else if (comp.type !== 'league' || Math.abs(m.hg - m.ag) >= 5) {
     const big = (H.rep >= 80 || A.rep >= 80) && comp.type !== 'league';
-    if (big || Math.abs(m.hg - m.ag) >= 5) addNews(state, `${comp.name} : ${H.name} ${m.hg}-${m.ag} ${A.name}${m.pen ? ` (${m.pen[0]}-${m.pen[1]} t.a.b.)` : ''}`, 'result');
+    if (big || Math.abs(m.hg - m.ag) >= 5) addNews(state, L(`${comp.name} : ${H.name} ${m.hg}-${m.ag} ${A.name}${m.pen ? ` (${m.pen[0]}-${m.pen[1]} t.a.b.)` : ''}`, `${comp.name}: ${H.name} ${m.hg}-${m.ag} ${A.name}${m.pen ? ` (${m.pen[0]}-${m.pen[1]} on pens)` : ''}`), 'result');
   }
 }
 
@@ -223,12 +227,12 @@ function userMatchAftermath(state, m, sim) {
   for (const pid of Object.keys(sim.injuries)) {
     const p = state.players[pid];
     if (p && p.club === club.id && p.inj > 0) {
-      addMsg(state, { from: 'Médecin', kind: 'injury', title: `Blessure : ${pname(p)}`, body: `${pname(p)} souffre d'une ${p.injName.toLowerCase()}. Indisponibilité estimée : ${p.inj} jours.`, pid: p.id, prio: p.inj > 20 ? 2 : 1 });
+      addMsg(state, { from: L('Médecin', 'Club doctor'), kind: 'injury', title: L(`Blessure : ${pname(p)}`, `Injury: ${pname(p)}`), body: L(`${pname(p)} souffre d'une ${p.injName.toLowerCase()}. Indisponibilité estimée : ${p.inj} jours.`, `${pname(p)} is injured (${p.injName.toLowerCase()}). Expected to be out for ${p.inj} days.`), pid: p.id, prio: p.inj > 20 ? 2 : 1 });
     }
   }
   for (const pid of sim.sides[us].reds) {
     const p = state.players[pid];
-    if (p) addMsg(state, { from: 'Adjoint', kind: 'susp', title: `Suspension : ${pname(p)}`, body: `${pname(p)} est suspendu pour ${p.susp} match(s) après son expulsion.`, pid });
+    if (p) addMsg(state, { from: L('Adjoint', 'Assistant'), kind: 'susp', title: L(`Suspension : ${pname(p)}`, `Suspension: ${pname(p)}`), body: L(`${pname(p)} est suspendu pour ${p.susp} match(s) après son expulsion.`, `${pname(p)} is suspended for ${p.susp} match(es) after his sending-off.`), pid });
   }
 }
 
@@ -250,15 +254,15 @@ export function playOtherMatchesToday(state) {
 const notify = (state) => (type, d) => {
   if (type === 'transfer') {
     const from = d.from ? state.clubs[d.from] : null, to = state.clubs[d.to];
-    if (d.fee >= 15e6 || to.rep >= 82 || (from && from.id === state.user)) addNews(state, `${d.n} (${d.ovr}) : ${from ? from.name : 'libre'} → ${to.name}${d.fee ? ` pour ${fmtMoney(d.fee)}` : ''}${d.loan ? ' (prêt)' : ''}.`, 'transfer');
-    if (from && from.id === state.user) addMsg(state, { from: 'Directeur sportif', kind: 'transfer', title: `${d.n} quitte le club`, body: `${d.n} a rejoint ${to.name}${d.fee ? ` pour ${fmtMoney(d.fee)}` : ''}.`, pid: d.p });
+    if (d.fee >= 15e6 || to.rep >= 82 || (from && from.id === state.user)) addNews(state, L(`${d.n} (${d.ovr}) : ${from ? from.name : 'libre'} → ${to.name}${d.fee ? ` pour ${fmtMoney(d.fee)}` : ''}${d.loan ? ' (prêt)' : ''}.`, `${d.n} (${d.ovr}): ${from ? from.name : 'free agent'} → ${to.name}${d.fee ? ` for ${fmtMoney(d.fee)}` : ''}${d.loan ? ' (loan)' : ''}.`), 'transfer');
+    if (from && from.id === state.user) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'transfer', title: L(`${d.n} quitte le club`, `${d.n} leaves the club`), body: L(`${d.n} a rejoint ${to.name}${d.fee ? ` pour ${fmtMoney(d.fee)}` : ''}.`, `${d.n} has joined ${to.name}${d.fee ? ` for ${fmtMoney(d.fee)}` : ''}.`), pid: d.p });
   } else if (type === 'aiBid') {
     const { club, p, fee } = d;
     if (state.inbox.some((x) => x.act && x.act.type === 'bid' && x.act.pid === p.id && !x.done)) return;
     addMsg(state, {
       from: club.name, kind: 'bid', cid: club.id, pid: p.id, prio: 2,
-      title: `Offre pour ${pname(p)}`,
-      body: `${club.name} propose ${fmtMoney(fee)} pour ${pname(p)} (valeur estimée ${fmtMoney(p.value)}).`,
+      title: L(`Offre pour ${pname(p)}`, `Bid for ${pname(p)}`),
+      body: L(`${club.name} propose ${fmtMoney(fee)} pour ${pname(p)} (valeur estimée ${fmtMoney(p.value)}).`, `${club.name} offer ${fmtMoney(fee)} for ${pname(p)} (estimated value ${fmtMoney(p.value)}).`),
       act: { type: 'bid', pid: p.id, club: club.id, fee, exp: state.day + 4 },
     });
   } else if (type === 'cupDraw') {
@@ -266,24 +270,24 @@ const notify = (state) => (type, d) => {
     const mine = st.mids.map((id) => state.matches[id]).find((m) => m.h === state.user || m.a === state.user);
     if (mine) {
       const opp = state.clubs[mine.h === state.user ? mine.a : mine.h];
-      addMsg(state, { from: d.cup.name, kind: 'draw', title: `Tirage : ${st.label}`, body: `${d.cup.name}, ${st.label.toLowerCase()} : vous affronterez ${opp.name} (${state.comps[opp.league].name}) ${mine.neutral ? 'en terrain neutre' : mine.h === state.user ? 'à domicile' : "à l'extérieur"} le ${fmtDate(mine.d, 'wdm')}.`, cid: opp.id });
+      addMsg(state, { from: d.cup.name, kind: 'draw', title: L(`Tirage : ${st.label}`, `Draw: ${st.label}`), body: L(`${d.cup.name}, ${st.label.toLowerCase()} : vous affronterez ${opp.name} (${state.comps[opp.league].name}) ${mine.neutral ? 'en terrain neutre' : mine.h === state.user ? 'à domicile' : "à l'extérieur"} le ${fmtDate(mine.d, 'wdm')}.`, `${d.cup.name}, ${st.label.toLowerCase()}: you will face ${opp.name} (${state.comps[opp.league].name}) ${mine.neutral ? 'on neutral ground' : mine.h === state.user ? 'at home' : 'away'} on ${fmtDate(mine.d, 'wdm')}.`), cid: opp.id });
     }
   } else if (type === 'contiDraw') {
     const st = d.stage;
     const mine = st.mids.map((id) => state.matches[id]).find((m) => m.h === state.user || m.a === state.user);
     if (mine) {
       const opp = state.clubs[mine.h === state.user ? mine.a : mine.h];
-      addMsg(state, { from: contiName(state), kind: 'draw', title: `Tirage : ${st.label}`, body: `Vous affronterez ${opp.name} le ${fmtDate(mine.d, 'wdm')}.`, cid: opp.id });
+      addMsg(state, { from: contiName(state), kind: 'draw', title: L(`Tirage : ${st.label}`, `Draw: ${st.label}`), body: L(`Vous affronterez ${opp.name} le ${fmtDate(mine.d, 'wdm')}.`, `You will face ${opp.name} on ${fmtDate(mine.d, 'wdm')}.`), cid: opp.id });
     }
   } else if (type === 'cupWin') {
     const w = state.clubs[d.club];
-    addNews(state, `🏆 ${w.name} remporte la ${d.cup.name} !`, 'trophy', { c: w.id });
+    addNews(state, L(`🏆 ${w.name} remporte la ${d.cup.name} !`, `🏆 ${w.name} win the ${d.cup.name}!`), 'trophy', { c: w.id });
     w.trophies.push({ s: state.season, n: d.cup.name, k: 'cup' });
     addFin(w, 'in', 'Primes', PRIZE.cupWin);
     if (w.id === state.user) userTrophy(state, d.cup.name, 'cup');
   } else if (type === 'contiWin') {
     const w = state.clubs[d.club];
-    addNews(state, `🏆 ${w.name} remporte la ${contiName(state)} !`, 'trophy', { c: w.id });
+    addNews(state, L(`🏆 ${w.name} remporte la ${contiName(state)} !`, `🏆 ${w.name} win the ${contiName(state)}!`), 'trophy', { c: w.id });
     w.trophies.push({ s: state.season, n: contiName(state), k: 'conti' });
     addFin(w, 'in', 'Primes', PRIZE.contiChamp);
     w.rep = Math.min(99, w.rep + 3);
@@ -298,7 +302,7 @@ export function userTrophy(state, name, kind) {
   if (kind === 'cup') { mgr.career.cups++; mgr.rep = clamp(mgr.rep + 5, 1, 100); mgr.conf = clamp(mgr.conf + 15, 0, 100); }
   if (kind === 'conti') { mgr.career.conti++; mgr.rep = clamp(mgr.rep + 12, 1, 100); mgr.conf = clamp(mgr.conf + 25, 0, 100); }
   state.flags.lbDirty = true;
-  addMsg(state, { from: 'Président', kind: 'trophy', title: `🏆 ${name} !`, body: `Félicitations ! ${club.name} remporte la ${name}. Toute la ville est en fête !`, prio: 2 });
+  addMsg(state, { from: L('Président', 'Chairman'), kind: 'trophy', title: L(`🏆 ${name} !`, `🏆 ${name}!`), body: L(`Félicitations ! ${club.name} remporte la ${name}. Toute la ville est en fête !`, `Congratulations! ${club.name} have won the ${name}. The whole city is celebrating!`), prio: 2 });
 }
 
 function dailyRecovery(state) {
@@ -312,7 +316,7 @@ function dailyRecovery(state) {
         if (p.inj === 0) {
           p.injName = '';
           p.cond = Math.min(p.cond, 72);
-          if (club.id === state.user) addMsg(state, { from: 'Médecin', kind: 'injury', title: `${pname(p)} est rétabli`, body: `${pname(p)} est de nouveau disponible.`, pid: p.id });
+          if (club.id === state.user) addMsg(state, { from: L('Médecin', 'Club doctor'), kind: 'injury', title: L(`${pname(p)} est rétabli`, `${pname(p)} is fit again`), body: L(`${pname(p)} est de nouveau disponible.`, `${pname(p)} is available again.`), pid: p.id });
         }
       } else if (p.cond < 100) {
         p.cond = Math.min(100, p.cond + 6.5 + p.attr[13] * 0.2 + med * 0.4 + (intensity === 0 ? 2 : intensity === 2 ? -1.5 : 0));
@@ -332,7 +336,7 @@ function weekly(state) {
       p.morale = Math.round(p.morale + (66 - p.morale) * 0.08);
       if (club.id === state.user && club.training.int === 2 && p.inj <= 0 && R.chance(0.004)) {
         injure(state, p, true);
-        addMsg(state, { from: 'Médecin', kind: 'injury', title: `Blessure à l'entraînement : ${pname(p)}`, body: `${pname(p)} s'est blessé à l'entraînement (${p.injName.toLowerCase()}, ${p.inj} jours).`, pid: p.id });
+        addMsg(state, { from: L('Médecin', 'Club doctor'), kind: 'injury', title: L(`Blessure à l'entraînement : ${pname(p)}`, `Training injury: ${pname(p)}`), body: L(`${pname(p)} s'est blessé à l'entraînement (${p.injName.toLowerCase()}, ${p.inj} jours).`, `${pname(p)} was injured in training (${p.injName.toLowerCase()}, ${p.inj} days).`), pid: p.id });
       }
     }
     if (club.id === state.user) {
@@ -343,7 +347,7 @@ function weekly(state) {
         p.morale = Math.max(5, p.morale - 3);
         if (p.morale < 32 && !p.gripe) {
           p.gripe = true;
-          addMsg(state, { from: 'Agent du joueur', kind: 'morale', pid: p.id, title: `${pname(p)} réclame du temps de jeu`, body: `Son agent nous fait savoir qu'il estime ne pas jouer assez et qu'il envisage un départ s'il ne devient pas titulaire.\n\nSon moral est au plus bas (${Math.round(p.morale)}/100). Fais-le jouer, ou place-le sur la liste des transferts.` });
+          addMsg(state, { from: L('Agent du joueur', "Player's agent"), kind: 'morale', pid: p.id, title: L(`${pname(p)} réclame du temps de jeu`, `${pname(p)} wants more playing time`), body: L(`Son agent nous fait savoir qu'il estime ne pas jouer assez et qu'il envisage un départ s'il ne devient pas titulaire.\n\nSon moral est au plus bas (${Math.round(p.morale)}/100). Fais-le jouer, ou place-le sur la liste des transferts.`, `His agent tells us he feels he isn't playing enough and is considering leaving unless he becomes a starter.\n\nHis morale is at rock bottom (${Math.round(p.morale)}/100). Play him, or put him on the transfer list.`) });
         }
       }
     }
@@ -367,7 +371,7 @@ function weekly(state) {
     const club = state.clubs[state.user];
     if (club.balance < 0 && !state.flags.debtWarn) {
       state.flags.debtWarn = true;
-      addMsg(state, { from: 'Président', kind: 'board', title: 'Finances dans le rouge', body: `Le solde du club est négatif (${fmtMoney(club.balance)}). Vendez des joueurs ou réduisez la masse salariale, sinon la confiance du président va baisser.`, prio: 2 });
+      addMsg(state, { from: L('Président', 'Chairman'), kind: 'board', title: L('Finances dans le rouge', 'Finances in the red'), body: L(`Le solde du club est négatif (${fmtMoney(club.balance)}). Vendez des joueurs ou réduisez la masse salariale, sinon la confiance du président va baisser.`, `The club's balance is negative (${fmtMoney(club.balance)}). Sell players or cut the wage bill, or the chairman's confidence will drop.`), prio: 2 });
     } else if (club.balance >= 0) state.flags.debtWarn = false;
   }
 }
@@ -380,7 +384,7 @@ function monthly(state) {
   if (state.user && dt.m === 1) {
     const club = state.clubs[state.user];
     const exp = club.squad.map((id) => state.players[id]).filter((p) => p.until <= state.season + 1 && !p.loan);
-    if (exp.length) addMsg(state, { from: 'Directeur sportif', kind: 'contract', title: 'Contrats qui expirent en fin de saison', body: `Ces joueurs seront libres le 30 juin s'ils ne prolongent pas :\n${exp.map((p) => `• ${pname(p)} (${p.pos}, ${p.ovr})`).join('\n')}\n\nOuvrez leur fiche pour proposer une prolongation.`, prio: 1 });
+    if (exp.length) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'contract', title: L('Contrats qui expirent en fin de saison', 'Contracts expiring at the end of the season'), body: L(`Ces joueurs seront libres le 30 juin s'ils ne prolongent pas :\n${exp.map((p) => `• ${pname(p)} (${p.pos}, ${p.ovr})`).join('\n')}\n\nOuvrez leur fiche pour proposer une prolongation.`, `These players will be free on 30 June unless they extend:\n${exp.map((p) => `• ${pname(p)} (${posL(p.pos)}, ${p.ovr})`).join('\n')}\n\nYour director of football will try to extend the key players.`), prio: 1 });
   }
 }
 
@@ -391,7 +395,7 @@ function youthIntake(state) {
     for (let i = 0; i < n; i++) gen.push(genYouth(state, club, R.int(15, 16)));
     if (club.id === state.user) {
       const best = gen.slice().sort((a, b) => b.pot - a.pot)[0];
-      addMsg(state, { from: 'Centre de formation', kind: 'youth', title: 'Nouvelle génération au centre de formation', body: `${n} jeunes rejoignent le centre de formation. Le plus prometteur : ${pname(best)} (${best.pos}, ${best.age} ans). Retrouvez-les dans Entraînement > Centre de formation.`, prio: 2, pid: best.id });
+      addMsg(state, { from: L('Centre de formation', 'Youth academy'), kind: 'youth', title: L('Nouvelle génération au centre de formation', 'New intake at the youth academy'), body: L(`${n} jeunes rejoignent le centre de formation. Le plus prometteur : ${pname(best)} (${best.pos}, ${best.age} ans). Retrouvez-les dans Entraînement > Centre de formation.`, `${n} youngsters join the youth academy. The most promising: ${pname(best)} (${posL(best.pos)}, age ${best.age}). Find them in Training > Youth academy.`), prio: 2, pid: best.id });
     }
     while (club.youth.length > 10) {
       const worst = club.youth.map((id) => state.players[id]).sort((a, b) => a.pot - b.pot)[0];
@@ -403,9 +407,9 @@ function youthIntake(state) {
 
 function windowEvents(state) {
   const sd = state.sd, d = state.day;
-  if (d === sd.summerClose - 3 || d === sd.winterClose - 3) addMsg(state, { from: 'Directeur sportif', kind: 'window', title: 'Le mercato ferme dans 3 jours', body: 'Dernière ligne droite pour boucler vos transferts !' });
-  if (d === sd.summerClose + 1 || d === sd.winterClose + 1) addMsg(state, { from: 'Directeur sportif', kind: 'window', title: 'Le mercato est fermé', body: 'Plus aucun transfert possible (sauf joueurs libres) jusqu\'à la prochaine fenêtre.' });
-  if (d === sd.winterOpen) addMsg(state, { from: 'Directeur sportif', kind: 'window', title: 'Le mercato d\'hiver est ouvert', body: 'Vous pouvez acheter, vendre et prêter des joueurs jusqu\'au 31 janvier.' });
+  if (d === sd.summerClose - 3 || d === sd.winterClose - 3) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'window', title: L('Le mercato ferme dans 3 jours', 'The transfer window closes in 3 days'), body: L('Dernière ligne droite pour boucler vos transferts !', 'Last chance to finalise your transfers!') });
+  if (d === sd.summerClose + 1 || d === sd.winterClose + 1) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'window', title: L('Le mercato est fermé', 'The transfer window is closed'), body: L('Plus aucun transfert possible (sauf joueurs libres) jusqu\'à la prochaine fenêtre.', 'No more transfers (except free agents) until the next window.') });
+  if (d === sd.winterOpen) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'window', title: L('Le mercato d\'hiver est ouvert', 'The winter transfer window is open'), body: L('Vous pouvez acheter, vendre et prêter des joueurs jusqu\'au 31 janvier.', 'You can buy and sell players until 31 January.') });
 }
 
 function expireOffers(state) {
@@ -432,9 +436,10 @@ export function directorRenewals(state) {
     keep.push(p);
   }
   if (keep.length || gone.length) addMsg(state, {
-    from: 'Directeur sportif', kind: 'contract', prio: 1,
-    title: 'Bilan des prolongations',
-    body: (keep.length ? `Prolongés :\n${keep.map((p) => `• ${pname(p)} jusqu'en ${p.until} (${fmtMoney(p.wage)}/sem.)`).join('\n')}\n\n` : '') + (gone.length ? `Non prolongés (libres le 30 juin, sauf si vous prolongez vous-même) :\n${gone.map((p) => `• ${pname(p)} (${p.age} ans, ${p.ovr})`).join('\n')}` : '') + '\n\nVous pouvez désactiver ces décisions automatiques dans Club > Délégation.',
+    from: L('Directeur sportif', 'Director of football'), kind: 'contract', prio: 1,
+    title: L('Bilan des prolongations', 'Contract extensions'),
+    body: L((keep.length ? `Prolongés :\n${keep.map((p) => `• ${pname(p)} jusqu'en ${p.until} (${fmtMoney(p.wage)}/sem.)`).join('\n')}\n\n` : '') + (gone.length ? `Non prolongés (libres le 30 juin, sauf si vous prolongez vous-même) :\n${gone.map((p) => `• ${pname(p)} (${p.age} ans, ${p.ovr})`).join('\n')}` : '') + '\n\nVous pouvez désactiver ces décisions automatiques dans Club > Délégation.',
+      (keep.length ? `Extended:\n${keep.map((p) => `• ${pname(p)} until ${p.until} (${fmtMoney(p.wage)}/wk)`).join('\n')}\n\n` : '') + (gone.length ? `Not extended (free on 30 June):\n${gone.map((p) => `• ${pname(p)} (age ${p.age}, ${p.ovr})`).join('\n')}` : '')),
   });
 }
 
@@ -447,7 +452,7 @@ function directorFill(state) {
   const before = club.squad.length;
   const signed = [];
   aiFillFree(state, club, (t, d) => { if (t === 'transfer') signed.push(d.n); }, min);
-  if (signed.length) addMsg(state, { from: 'Directeur sportif', kind: 'transfer', prio: 1, title: 'Effectif complété', body: `L'effectif était trop court (${before} joueurs). J'ai engagé des joueurs libres :\n${signed.map((n) => `• ${n}`).join('\n')}` });
+  if (signed.length) addMsg(state, { from: L('Directeur sportif', 'Director of football'), kind: 'transfer', prio: 1, title: L('Effectif complété', 'Squad topped up'), body: L(`L'effectif était trop court (${before} joueurs). J'ai engagé des joueurs libres :\n${signed.map((n) => `• ${n}`).join('\n')}`, `The squad was too small (${before} players). I have signed some free agents:\n${signed.map((n) => `• ${n}`).join('\n')}`) });
 }
 
 export function advanceDay(state) {
