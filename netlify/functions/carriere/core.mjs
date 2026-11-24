@@ -211,6 +211,14 @@ VUES.competitions = (S, q = {}) => {
   } else if (onglet === 'resultats' && comp) {
     const ms = Object.values(S.matches).filter((m) => m.c === comp.id && m.done).sort((a, b) => b.d - a.d).slice(0, 40);
     out.matchs = ms.map((m) => ({ date: fmtDate(m.d, 'dm'), txt: `${S.clubs[m.h].name} ${m.hg}-${m.ag} ${S.clubs[m.a].name}`, moi: m.h === S.user || m.a === S.user ? 1 : 0 }));
+  } else if (onglet === 'coupes' || onglet === 'europe') {
+    const cid = onglet === 'coupes' ? pays + 'C' : 'CONT';
+    out.titre = S.comps[cid]?.name || (onglet === 'europe' ? contiName(S) : 'Coupe');
+    out.matchs = Object.values(S.matches).filter((m) => m.c === cid).sort((a, b) => b.d - a.d).slice(0, 60).map((m) => ({
+      date: `${fmtDate(m.d, 'dm')}${m.lb ? ' · ' + m.lb : ''}`,
+      txt: m.done ? `${S.clubs[m.h].name} ${m.hg}-${m.ag} ${S.clubs[m.a].name}${m.pen ? ` (${m.pen[0]}-${m.pen[1]} tab)` : ''}` : `${S.clubs[m.h].name} - ${S.clubs[m.a].name}`,
+      moi: m.h === S.user || m.a === S.user ? 1 : 0,
+    }));
   } else if (onglet === 'stats' && comp) {
     const ps = comp.clubs.flatMap((cid) => S.clubs[cid].squad.map((id) => S.players[id]));
     out.buteurs = ps.filter((p) => p.st.lg).sort((a, b) => b.st.lg - a.st.lg).slice(0, 20).map((p) => ({ nom: pname(p), club: S.clubs[p.club]?.name || '', v: p.st.lg }));
@@ -537,6 +545,7 @@ export function postuler(S, id) {
 export async function traiter(b, store, lireClassement) {
   const a = b && b.a;
   if (a === 'clubs') return { pays: listeClubs() };
+  if (a === 'classement') return { classement: lireClassement ? await lireClassement() : null };
   if (a === 'nouvelle') {
     const r = nouvelleCarriere(b.nom, b.club);
     if (r.error) return r;
