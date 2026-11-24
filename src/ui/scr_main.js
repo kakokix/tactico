@@ -71,7 +71,7 @@ function clubStep() {
   const clubs = comp.clubs.map((id) => S.clubs[id]).sort((a, b) => b.rep - a.rep);
   return `<div class="main" style="max-width:1100px;padding-bottom:40px">
     <div class="ph"><div><button class="btn ghost sm" data-a="toMgrStep">${ICON.back} Retour</button><h1 class="mt">Choisis ton club</h1><div class="sub">Plus le club est petit, plus le défi (et les points) sont grands.</div></div></div>
-    <div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${cc === C.code ? 'on' : ''}" data-a="pickCountry" data-c="${C.code}">${NATIONS[C.code].flag} ${C.name}</button>`).join('')}</div>
+    <div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${cc === C.code ? 'on' : ''}" data-a="pickCountry" data-c="${C.code}">${flag(C.code)} ${C.name}</button>`).join('')}</div>
     <div class="seg mb"><button class="${lvl === 1 ? 'on' : ''}" data-a="pickLvl" data-l="1">${esc(S.comps[cc + '1'].name)}</button><button class="${lvl === 2 ? 'on' : ''}" data-a="pickLvl" data-l="2">${esc(S.comps[cc + '2'].name)}</button></div>
     <div class="clubpick">${clubs.map((c) => `<button class="cp" data-a="clubInfo" data-id="${c.id}">${crest(c, 'lg')}<span class="grow"><b style="font-family:var(--cond);font-size:19px">${esc(c.name)}</b><br>${stars(c.rep)} <span class="muted small">Note ${Math.round(c.str)}</span><br><span class="muted small">${esc(computeObjective(S, c).label)}</span></span></button>`).join('')}</div>
   </div>`;
@@ -85,7 +85,7 @@ function clubInfoModal(m) {
   return `${modalHead(esc(c.name), `${esc(S.comps[c.league].name)} · ${esc(c.stadium.name)} (${c.stadium.cap.toLocaleString('fr-FR')} places)`)}
     <div class="row mb">${crest(c, 'xl')}<div class="kpis grow"><div class="kpi"><small>Réputation</small><b>${stars(c.rep)}</b></div><div class="kpi"><small>Note de l'équipe</small><b>${Math.round(c.str)}</b></div><div class="kpi"><small>Budget transferts</small><b>${money(c.tBudget)}</b></div><div class="kpi"><small>Revenus / saison</small><b>${money(projectRevenue(S, c))}</b></div></div></div>
     <div class="note mb"><b>Objectif du président :</b> ${esc(obj.label)}</div>
-    <h3 class="mb">Meilleurs joueurs</h3>
+    <h3 class="mb">${ICON.star}Meilleurs joueurs</h3>
     <div class="list mb">${ps.slice(0, 6).map((p) => `<div class="li">${posB(p.pos)}<span class="grow"><span class="nm">${flag(p.nat)} ${esc(pname(p))}</span><span class="meta">${p.age} ans · ${money(p.value)}</span></span>${ovrB(p.ovr)}</div>`).join('')}</div>
     <button class="btn pri block" data-a="signClub" data-id="${c.id}" style="min-height:52px">Signer à ${esc(c.name)}</button>`;
 }
@@ -196,25 +196,25 @@ function homeScreen() {
       <table class="tbl"><thead><tr><th>#</th><th>Club</th><th class="n">J</th><th class="n">Diff</th><th class="n">Pts</th></tr></thead><tbody>
       ${around.map((r) => { const i = table.indexOf(r) + 1; const c = S.clubs[r.c]; return `<tr class="${r.c === club.id ? 'me' : ''} click" data-a="clubView" data-id="${c.id}"><td>${i}</td><td><span class="clubc">${crest(c, 'sm')}<span>${esc(c.name)}</span></span></td><td class="n">${r.p}</td><td class="n">${r.gf - r.ga > 0 ? '+' : ''}${r.gf - r.ga}</td><td class="n"><b>${r.pts}</b></td></tr>`; }).join('')}
       </tbody></table></div>
-    <div class="card"><div class="ttl"><h3>Derniers résultats</h3><span class="form">${(row?.f || '').split('').map((x) => `<i class="${x}">${x}</i>`).join('')}</span></div>
+    <div class="card"><div class="ttl"><h3>${ICON.table}Derniers résultats</h3><span class="form">${(row?.f || '').split('').map((x) => `<i class="${x}">${x}</i>`).join('')}</span></div>
       ${results.length ? `<div class="list">${results.map((m) => { const H = S.clubs[m.h], A = S.clubs[m.a]; const r = teamResult(S, m, club.id); return `<button class="li" data-a="matchReport" data-id="${m.id}"><span class="form"><i class="${r}">${r}</i></span><span class="grow"><span class="nm">${esc(H.short)} ${m.hg}-${m.ag} ${esc(A.short)}${m.pen ? ` (${m.pen[0]}-${m.pen[1]} tab)` : ''}</span><span class="meta">${esc(compName(S, m.c))} · ${fmtDate(m.d, 'dm')}</span></span></button>`; }).join('')}</div>` : '<p class="muted">Pas encore de match joué.</p>'}
     </div>
   </div>
   <div class="grid2 mt">
-    <div class="card"><div class="ttl"><h3>Messagerie</h3><button class="btn sm" data-a="nav" data-s="inbox">Ouvrir</button></div>
+    <div class="card"><div class="ttl"><h3>${ICON.inbox}Messagerie</h3><button class="btn sm" data-a="nav" data-s="inbox">Ouvrir</button></div>
       ${unread.length ? `<div class="list">${unread.map((m) => `<button class="li unread" data-a="openMsg" data-id="${m.id}"><span class="grow"><span class="nm">${esc(m.title)}</span><span class="meta">${esc(m.from)} · ${fmtDate(m.day, 'dm')}</span></span></button>`).join('')}</div>` : '<p class="muted">Aucun nouveau message.</p>'}
       ${absent.length ? `<h3 class="mt">Absents</h3><div class="list mt">${absent.map((p) => `<button class="li" data-a="player" data-id="${p.id}">${posB(p.pos)}<span class="grow"><span class="nm">${esc(pname(p))}</span><span class="meta">${p.inj > 0 ? `${esc(p.injName)} · ${p.inj} j` : `Suspendu · ${p.susp} match(s)`}</span></span><span class="chip ${p.inj > 0 ? 'red' : 'orange'}">${p.inj > 0 ? 'Blessé' : 'Suspendu'}</span></button>`).join('')}</div>` : ''}
     </div>
-    <div class="card"><div class="ttl"><h3>Actualités</h3></div>${news.length ? news.map((n) => `<div class="newsi"><time>${fmtDate(n.d, 'dm')}</time><span>${esc(n.t)}</span></div>`).join('') : '<p class="muted">Rien de neuf pour le moment.</p>'}</div>
+    <div class="card"><div class="ttl"><h3>${ICON.bell}Actualités</h3></div>${news.length ? news.map((n) => `<div class="newsi"><time>${fmtDate(n.d, 'dm')}</time><span>${esc(n.t)}</span></div>`).join('') : '<p class="muted">Rien de neuf pour le moment.</p>'}</div>
   </div>`;
 }
 
 function unemployedHome() {
   const S = G.S;
   return `<div class="ph"><div><h1>Sans club</h1><div class="sub">${esc(S.mgr.name)} · réputation ${Math.round(S.mgr.rep)}/100</div></div></div>
-  <div class="card"><h3>Retrouve un poste</h3><p class="muted">Consulte les postes vacants dans Carrière et postule. Les clubs peuvent aussi te contacter : clique sur Continuer pour avancer dans le temps.</p>
+  <div class="card"><h3>${ICON.contract}Retrouve un poste</h3><p class="muted">Consulte les postes vacants dans Carrière et postule. Les clubs peuvent aussi te contacter : clique sur Continuer pour avancer dans le temps.</p>
   <div class="row wrap mt"><button class="btn pri" data-a="nav" data-s="career">${ICON.career} Offres d'emploi</button><button class="btn" data-a="continue">Avancer ${ICON.next}</button></div></div>
-  <div class="card"><div class="ttl"><h3>Actualités</h3></div>${S.news.slice(0, 10).map((n) => `<div class="newsi"><time>${fmtDate(n.d, 'dm')}</time><span>${esc(n.t)}</span></div>`).join('')}</div>`;
+  <div class="card"><div class="ttl"><h3>${ICON.bell}Actualités</h3></div>${S.news.slice(0, 10).map((n) => `<div class="newsi"><time>${fmtDate(n.d, 'dm')}</time><span>${esc(n.t)}</span></div>`).join('')}</div>`;
 }
 
 // ---------- Messagerie ----------

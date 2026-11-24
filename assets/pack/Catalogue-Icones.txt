@@ -1,0 +1,60 @@
+﻿Pack d’icônes Tactico Outline
+
+68 PNG transparents de 256 × 256 px, dont les 44 icônes du premier pack.
+Les aperçus séparent les icônes de base et les nouveautés.
+
+Correspondance des pictogrammes Tactico
+
+accueil  →  PNG/Navigation/Accueil.png
+ajouter  →  PNG/Commandes/Ajouter.png
+allemagne  →  PNG/Drapeaux/Allemagne.png
+angleterre  →  PNG/Drapeaux/Angleterre.png
+ballon  →  PNG/Match/Ballon-de-match.png
+calendrier  →  PNG/Navigation/Calendrier.png
+courrier  →  PNG/Navigation/Messagerie.png
+ecusson  →  PNG/Club/Ecusson.png
+effectif  →  PNG/Navigation/Effectif.png
+espagne  →  PNG/Drapeaux/Espagne.png
+etoile  →  PNG/Club/Etoile.png
+fermer  →  PNG/Commandes/Fermer.png
+finances  →  PNG/Club/Finances.png
+france  →  PNG/Drapeaux/France.png
+globe  →  PNG/Navigation/Classement-mondial.png
+hasard  →  PNG/Commandes/Aleatoire.png
+italie  →  PNG/Drapeaux/Italie.png
+lecture  →  PNG/Commandes/Jouer.png
+options  →  PNG/Navigation/Reglages.png
+profil  →  PNG/Navigation/Profil.png
+progression  →  PNG/Navigation/Progression.png
+rejouer  →  PNG/Commandes/Rejouer.png
+suivant  →  PNG/Commandes/Suivant.png
+tactique  →  PNG/Club/Tactique.png
+transfert  →  PNG/Club/Mercato.png
+trophee  →  PNG/Club/Trophee.png
+
+Nouvelles icônes
+
+Penalty  |  PNG/Match/Penalty.png
+Coup franc  |  PNG/Match/Coup-franc.png
+Hors-jeu  |  PNG/Match/Hors-jeu.png
+Blessure  |  PNG/Match/Blessure.png
+Plot d’entraînement  |  PNG/Match/Plot-d-entrainement.png
+Gourde  |  PNG/Match/Gourde.png
+Chasuble  |  PNG/Match/Chasuble.png
+Banc de touche  |  PNG/Match/Banc-de-touche.png
+Contrat  |  PNG/Club/Contrat.png
+Recruteur  |  PNG/Club/Recruteur.png
+Sponsor  |  PNG/Club/Sponsor.png
+Académie  |  PNG/Club/Academie.png
+Billetterie  |  PNG/Club/Billetterie.png
+Médaille  |  PNG/Club/Medaille.png
+Vestiaire  |  PNG/Club/Vestiaire.png
+Boutique  |  PNG/Club/Boutique.png
+Filtre  |  PNG/Commandes/Filtre.png
+Trier  |  PNG/Commandes/Trier.png
+Notification  |  PNG/Commandes/Notification.png
+Verrou  |  PNG/Commandes/Verrou.png
+Sauvegarder  |  PNG/Commandes/Sauvegarder.png
+Aide  |  PNG/Commandes/Aide.png
+Informations  |  PNG/Commandes/Informations.png
+Résultats  |  PNG/Commandes/Resultats.png

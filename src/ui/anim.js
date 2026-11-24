@@ -2,6 +2,9 @@
 // centres, tirs, arrêts du gardien), coups de pied arrêtés, célébrations et VAR.
 // Les tirages au sort de l'animation utilisent Math.random : ils ne touchent jamais au résultat du match.
 import { POS_GROUP } from '../core/constants.js';
+import BALLON from '../assets/ballon.png';
+
+const BALL_IMG = typeof Image !== 'undefined' ? Object.assign(new Image(), { src: BALLON }) : null;
 
 const PW = 105, PH = 68;
 const VX0 = -4.5, VY0 = -3, VW = 114, VH = 74;
@@ -650,9 +653,18 @@ export const anim = {
     const hh = b.h || 0;
     ctx.fillStyle = `rgba(0,0,0,${0.35 - Math.min(0.2, hh * 0.03)})`; ctx.beginPath(); ctx.ellipse(b.x + 0.35, b.y + 0.45, 0.75, 0.5, 0, 0, Math.PI * 2); ctx.fill();
     const r = 0.62 * (1 + hh * 0.07);
-    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(b.x, b.y - hh * 0.55, r, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 0.12; ctx.stroke();
-    ctx.fillStyle = '#1b1b1b'; ctx.beginPath(); ctx.arc(b.x - r * 0.25, b.y - hh * 0.55 - r * 0.2, r * 0.3, 0, Math.PI * 2); ctx.fill();
+    const by = b.y - hh * 0.55;
+    if (BALL_IMG && BALL_IMG.complete && BALL_IMG.naturalWidth) {
+      // vrai ballon (pack Tactico Outline) qui tourne quand il roule
+      const pb = this.prevBall || b;
+      this.spin = ((this.spin || 0) + Math.sign(b.x - pb.x || 1) * Math.hypot(b.x - pb.x, b.y - pb.y) / r) % (Math.PI * 2);
+      this.prevBall = { x: b.x, y: b.y };
+      ctx.save(); ctx.translate(b.x, by); ctx.rotate(this.spin); ctx.drawImage(BALL_IMG, -r * 1.15, -r * 1.15, r * 2.3, r * 2.3); ctx.restore();
+    } else {
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(b.x, by, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#1b1b1b'; ctx.lineWidth = 0.12; ctx.stroke();
+      ctx.fillStyle = '#1b1b1b'; ctx.beginPath(); ctx.arc(b.x - r * 0.25, by - r * 0.2, r * 0.3, 0, Math.PI * 2); ctx.fill();
+    }
     // bandeaux
     this.banners = this.banners.filter((x) => x.until > ts);
     let nBig = 0, nSmall = 0;

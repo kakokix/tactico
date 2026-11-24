@@ -141,7 +141,7 @@ function tacticsScreen() {
         ${picker}
       </div>
       <div>
-        <div class="card"><h3 class="mb">Consignes</h3>
+        <div class="card"><h3 class="mb">${ICON.whistle}Consignes</h3>
           <div class="field"><label>Mentalité</label>${seg('ment', MENTALITY)}</div>
           <div class="field"><label>Pressing</label>${seg('press', PRESSING)}</div>
           <div class="field"><label>Style de jeu</label>${seg('style', STYLE)}</div>
@@ -150,7 +150,7 @@ function tacticsScreen() {
           <div class="field"><label>Tireur de penalty</label><select class="input" data-ch="penTaker"><option value="">Automatique</option>${club.squad.map((id) => S.players[id]).filter((p) => p.pos !== 'GB').sort((a, b) => (b.attr[A.fin] + b.attr[A.sgf] + b.attr[A.cpa]) - (a.attr[A.fin] + a.attr[A.sgf] + a.attr[A.cpa])).map((p) => `<option value="${p.id}" ${club.penTaker === p.id ? 'selected' : ''}>${esc(pname(p))} (${p.attr[A.fin]}/${p.attr[A.sgf]})</option>`).join('')}</select></div>
           <p class="small muted">Pressing haut = plus de récupérations mais plus de fatigue. Ligne haute = hors-jeu provoqués mais risque face aux attaquants rapides.</p>
         </div>
-        <div class="card"><div class="ttl"><h3>Remplaçants (${bench.length}/9)</h3></div>
+        <div class="card"><div class="ttl"><h3>${ICON.bench}Remplaçants (${bench.length}/9)</h3></div>
           ${bench.length ? `<div class="list">${bench.map((p) => `<div class="li">${posB(p.pos)}<span class="grow"><span class="nm">${esc(pname(p))}</span><span class="meta">${condBar(p.cond)}</span></span>${ovrB(p.ovr)}<button class="icon-btn" data-a="benchRemove" data-id="${p.id}" aria-label="Retirer">${ICON.x}</button></div>`).join('')}</div>` : '<p class="muted">Aucun remplaçant.</p>'}
           <select class="input mt" data-ch="benchAdd" aria-label="Ajouter un remplaçant"><option value="">+ Ajouter un remplaçant…</option>${club.squad.map((id) => S.players[id]).filter((p) => !club.lineup.includes(p.id) && !club.bench.includes(p.id)).sort((a, b) => b.ovr - a.ovr).map((p) => `<option value="${p.id}">${p.pos} · ${esc(pname(p))} (${p.ovr})${!isAvailable(p) ? ' — indisponible' : ''}</option>`).join('')}</select>
         </div>

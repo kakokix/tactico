@@ -1,44 +1,37 @@
 // Aides d'affichage : échappement, icônes, formats, écussons.
 import { NATIONS } from '../data/names.js';
+import { PAYS } from '../data/pays.js';
+import ASSETS from '../assets/assets.json';
 import { POS_GROUP } from '../core/constants.js';
+
+const FLAG_CODES = [...Object.keys(ASSETS.drapeaux.i), ...Object.keys(ASSETS.alias)];
 
 export const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const I = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${extra}>${d}</svg>`;
+// Icônes du pack Tactico Outline (planche intégrée au CSS par build.mjs : classes .ic-<nom>)
+export const ic = (nom, cls = '') => `<i class="ic ic-${nom}${cls ? ' ' + cls : ''}" aria-hidden="true"></i>`;
 export const ICON = {
-  home: I('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>'),
-  squad: I('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 3-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c2.4-.2 4.4 1.3 5 4.3"/>'),
-  tactics: I('<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 12h18"/><circle cx="12" cy="12" r="3"/><circle cx="7" cy="7" r="1"/><circle cx="17" cy="17" r="1"/>'),
-  transfer: I('<path d="M4 8h13l-3-3"/><path d="M20 16H7l3 3"/>'),
+  home: ic('accueil'), squad: ic('effectif'), tactics: ic('tactique'), transfer: ic('mercato'),
   more: I('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'),
-  cal: I('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
-  trophy: I('<path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M16 5h3v2a3 3 0 0 1-3 3M8 5H5v2a3 3 0 0 0 3 3"/><path d="M12 13v4M8 21h8M9.5 17h5"/>'),
-  table: I('<path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 6v12"/>'),
-  money: I('<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M7 9.5v5M17 9.5v5"/>'),
-  train: I('<path d="M4 18l4-4 3 3 8-8"/><path d="M15 9h4v4"/>'),
-  club: I('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z"/>'),
-  career: I('<circle cx="12" cy="7" r="3.5"/><path d="M5 21c.7-4 3.6-6 7-6s6.3 2 7 6"/>'),
-  world: I('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/>'),
-  inbox: I('<path d="M4 4h16v12H15l-3 3-3-3H4z"/><path d="M8 9h8M8 12h5"/>'),
-  cog: I('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>'),
-  play: I('<path d="M7 4l13 8-13 8z" fill="currentColor"/>'),
-  pause: I('<path d="M7 4h4v16H7zM13 4h4v16h-4z" fill="currentColor" stroke="none"/>'),
-  next: I('<path d="M5 4l10 8-10 8z" fill="currentColor"/><path d="M19 4v16"/>'),
-  x: I('<path d="M6 6l12 12M18 6L6 18"/>'),
-  back: I('<path d="M15 5l-7 7 7 7"/>'),
-  star: I('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" fill="currentColor" stroke="none"/>'),
-  ball: I('<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 4.5h-5L8 10z"/>'),
-  sub: I('<path d="M7 4v14M3 14l4 4 4-4"/><path d="M17 20V6M13 10l4-4 4 4"/>'),
-  plus: I('<path d="M12 5v14M5 12h14"/>'),
-  search: I('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/>'),
-  heart: I('<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>'),
-  inj: I('<path d="M12 4v16M4 12h16"/>'),
-  card: I('<rect x="7" y="3" width="10" height="16" rx="2"/>'),
-  save: I('<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>'),
+  cal: ic('calendrier'), trophy: ic('trophee'), table: ic('resultats'), money: ic('finances'), train: ic('plot-d-entrainement'),
+  club: ic('ecusson'), career: ic('profil'), world: ic('classement-mondial'), inbox: ic('messagerie'), cog: ic('reglages'),
+  play: ic('jouer'), pause: ic('pause'), next: ic('suivant'), x: ic('fermer'), back: ic('retour'), star: ic('etoile'),
+  ball: ic('ballon-de-match'), sub: ic('remplacement'), plus: ic('ajouter'), search: ic('recherche'), heart: ic('medaille'),
+  inj: ic('blessure'), card: ic('carton-jaune'), red: ic('carton-rouge'), save: ic('sauvegarder'), gk: ic('gant-de-gardien'),
+  var: ic('ecran-var'), whistle: ic('sifflet'), medal: ic('medaille'), contract: ic('contrat'), scout: ic('recruteur'),
+  stadium: ic('stade'), shirt: ic('maillot'), academy: ic('academie'), tickets: ic('billetterie'), sponsor: ic('sponsor'),
+  shop: ic('boutique'), filter: ic('filtre'), sort: ic('trier'), bell: ic('notification'), lock: ic('verrou'), help: ic('aide'),
+  info: ic('informations'), speed: ic('vitesse'), random: ic('aleatoire'), replay: ic('rejouer'), check: ic('valider'),
+  timer: ic('chronometre'), penalty: ic('penalty'), freekick: ic('coup-franc'), offside: ic('hors-jeu'), corner: ic('fanion-de-corner'),
+  boot: ic('chaussure-a-crampons'), cone: ic('plot-d-entrainement'), bottle: ic('gourde'), bib: ic('chasuble'), bench: ic('banc-de-touche'),
+  locker: ic('vestiaire'), progress: ic('progression'), goal: ic('but'), cards: ic('cartons'),
 };
 
-export const flag = (nat) => `<span class="flag" title="${esc(NATIONS[nat]?.name || nat)}">${NATIONS[nat]?.flag || '🏳️'}</span>`;
-export const natName = (nat) => NATIONS[nat]?.name || nat;
+// Drapeaux : planche de 264 drapeaux (codes ISO, plus EN, SCO, WAL et NIR), XX si le pays est inconnu
+const FLAGS = new Set(FLAG_CODES);
+export const flag = (nat) => `<span class="fl fl-${FLAGS.has(nat) ? nat : 'XX'}" title="${esc(natName(nat))}"></span>`;
+export const natName = (nat) => NATIONS[nat]?.name || PAYS[nat] || nat;
 
 export const ovrClass = (o) => (o >= 85 ? 'o5' : o >= 78 ? 'o4' : o >= 70 ? 'o3' : o >= 62 ? 'o2' : o >= 54 ? 'o1' : 'o0');
 export const ovrB = (o) => `<span class="ovr ${ovrClass(o)}">${o}</span>`;

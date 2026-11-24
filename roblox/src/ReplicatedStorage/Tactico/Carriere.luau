@@ -690,8 +690,10 @@ PAGES.tactique = function(d)
 		j.Info.TextColor3 = if s.dispo == 0 then C.red elseif s.fr < 75 then C.gold else C.mute
 		local choix = j.Maillot:FindFirstChild("Choix")
 		if choix then
-			choix.Color = if selectionTac == s.pid and s.pid ~= "" then C.lime else Color3.new(1, 1, 1)
-			choix.Thickness = if selectionTac == s.pid and s.pid ~= "" then 4 else 2
+			local choisi = selectionTac == s.pid and s.pid ~= ""
+			choix.Enabled = choisi
+			choix.Color = C.lime
+			choix.Thickness = 4
 		end
 		j.Activated:Connect(function()
 			choisirTac(s.pid)
@@ -1433,6 +1435,7 @@ end
 -- ---------- Match ----------
 local function ouvrirApresMatch(m)
 	local a = m.apres
+	aller("accueil")
 	ouvrirModale(a.titre, a.comp)
 	modale.Boite.Titre.TextColor3 = if a.res == "W" then C.lime elseif a.res == "L" then C.red else C.gold
 	corps.Score.Visible = true
@@ -1462,10 +1465,7 @@ local function ouvrirApresMatch(m)
 			end,
 		})
 	end
-	boutonModale(1, "Continue", "pri", function()
-		fermerModale()
-		aller("accueil")
-	end)
+	boutonModale(1, "Continue", "pri", fermerModale)
 end
 
 local function finMatch(m)

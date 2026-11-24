@@ -34,11 +34,11 @@ function matchScreen() {
   ${notes.length ? `<div class="note warn mt">${notes.map(esc).join('<br>')}</div>` : ''}
   ${tired.length ? `<div class="note warn mt">Fatigués : ${tired.map(([p]) => `${esc(pshort(p))} (${Math.round(p.cond)}%)`).join(', ')}. Pense à faire tourner.</div>` : ''}
   <div class="grid2 mt">
-    <div class="card"><div class="ttl"><h3>Ton onze · ${me.tactics.formation}</h3><span class="small muted">${MENTALITY[me.tactics.ment]} · pressing ${PRESSING[me.tactics.press].toLowerCase()}</span></div>
+    <div class="card"><div class="ttl"><h3>${ICON.shirt}Ton onze · ${me.tactics.formation}</h3><span class="small muted">${MENTALITY[me.tactics.ment]} · pressing ${PRESSING[me.tactics.press].toLowerCase()}</span></div>
       <div class="list">${xi.map(([p, pos]) => p ? `<button class="li" data-a="player" data-id="${p.id}">${posB(pos)}<span class="grow"><span class="nm">${esc(pname(p))}</span><span class="meta">${condBar(p.cond)}</span></span>${ovrB(ovrAt(p, pos))}</button>` : `<div class="li">${posB(pos)}<span class="grow muted">Poste vide</span></div>`).join('')}</div></div>
-    <div class="card"><div class="ttl"><h3>Adversaire : ${esc(opp.name)}</h3></div>
+    <div class="card"><div class="ttl"><h3>${ICON.club}Adversaire : ${esc(opp.name)}</h3></div>
       <p class="small muted">Entraîneur ${esc(opp.mgr.fn + ' ' + opp.mgr.ln)} · formation habituelle ${opp.tactics.formation} · style ${STYLE[opp.tactics.style].toLowerCase()}</p>
-      <h3 class="mt mb">Joueurs clés</h3><div class="list">${oppKey.map((p) => `<button class="li" data-a="player" data-id="${p.id}">${posB(p.pos)}<span class="grow"><span class="nm">${esc(pname(p))}</span><span class="meta">${p.st.gls} buts · ${p.st.ast} passes cette saison</span></span>${ovrB(p.ovr)}</button>`).join('')}</div></div>
+      <h3 class="mt mb">${ICON.star}Joueurs clés</h3><div class="list">${oppKey.map((p) => `<button class="li" data-a="player" data-id="${p.id}">${posB(p.pos)}<span class="grow"><span class="nm">${esc(pname(p))}</span><span class="meta">${p.st.gls} buts · ${p.st.ast} passes cette saison</span></span>${ovrB(p.ovr)}</button>`).join('')}</div></div>
   </div>`;
 }
 
@@ -104,7 +104,7 @@ function panel() {
 function feedLine(e) {
   const L = ui.live;
   const cls = e.type === 'goal' ? 'goal' : e.type === 'red' || e.type === 'vardis' ? 'red' : ['ht', 'ft', 'et', 'pen', 'penmiss', 'var', 'varok'].includes(e.type) ? 'big' : '';
-  const ic = e.type === 'goal' ? '⚽ ' : e.type === 'yellow' ? '🟨 ' : e.type === 'red' ? '🟥 ' : e.type === 'sub' ? '🔁 ' : e.type === 'injury' ? '🚑 ' : e.type === 'save' ? '🧤 ' : e.type === 'var' || e.type === 'varok' || e.type === 'vardis' ? '📺 ' : '';
+  const ic = e.type === 'goal' ? ICON.ball + ' ' : e.type === 'yellow' ? ICON.card + ' ' : e.type === 'red' ? ICON.red + ' ' : e.type === 'sub' ? ICON.sub + ' ' : e.type === 'injury' ? ICON.inj + ' ' : e.type === 'save' ? ICON.gk + ' ' : e.type === 'var' || e.type === 'varok' || e.type === 'vardis' ? ICON.var + ' ' : '';
   const side = e.t === 0 || e.t === 1 ? `<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${barColor(L.colors[e.t])};margin-right:6px"></i>` : '';
   return `<div class="fe ${cls}"><span class="m">${e.min}'</span><span>${side}${ic}${esc(e.text || '')}</span></div>`;
 }
@@ -284,8 +284,8 @@ function postMatchModal() {
   return `${modalHead(won ? 'Victoire !' : lost ? 'Défaite' : 'Match nul', esc(compName(S, m.c)))}
     <div class="score"><div class="t">${crest(H)}<b>${esc(H.short)}</b></div><div class="s">${m.hg} - ${m.ag}${m.pen ? `<span class="clk">${m.pen[0]}-${m.pen[1]} t.a.b.</span>` : ''}</div><div class="t a"><b>${esc(A.short)}</b>${crest(A)}</div></div>
     ${goals ? `<div class="feed mt" style="max-height:none">${goals}</div>` : '<p class="muted mt">Aucun but.</p>'}
-    ${motm ? `<p class="mt">⭐ Homme du match : <b>${esc(pname(motm))}</b> (${(sim.sides[0].rat[motm.id] ?? sim.sides[1].rat[motm.id]).toFixed(1)})</p>` : ''}
-    <h3 class="mt mb">Tes joueurs</h3><div class="list">${Object.keys(mine.rat).map((pid) => { const p = S.players[pid]; return `<div class="li">${posB(mine.posOf[pid])}<span class="grow nm">${esc(pshort(p))}${S.players[pid]?.inj > 0 ? ' 🚑' : ''}</span>${rtB(mine.rat[pid])}</div>`; }).join('')}</div>
+    ${motm ? `<p class="mt">${ICON.star} Homme du match : <b>${esc(pname(motm))}</b> (${(sim.sides[0].rat[motm.id] ?? sim.sides[1].rat[motm.id]).toFixed(1)})</p>` : ''}
+    <h3 class="mt mb">${ICON.squad}Tes joueurs</h3><div class="list">${Object.keys(mine.rat).map((pid) => { const p = S.players[pid]; return `<div class="li">${posB(mine.posOf[pid])}<span class="grow nm">${esc(pshort(p))}${S.players[pid]?.inj > 0 ? ' ' + ICON.inj : ''}</span>${rtB(mine.rat[pid])}</div>`; }).join('')}</div>
     <p class="small muted mt">Confiance du président : ${Math.round(S.mgr.conf)}%</p>
     <button class="btn pri block mt" data-a="postDone">Continuer</button>`;
 }

@@ -69,7 +69,7 @@ function compsScreen() {
   const S = G.S;
   const f = ui.f.cp || (ui.f.cp = { tab: 'league', cc: S.user ? S.clubs[S.user].country : 'FR', lvl: S.user ? S.comps[S.clubs[S.user].league].level : 1, rd: null, stat: 'gls' });
   const tabs = [['league', 'Championnats'], ['results', 'Résultats'], ['cup', 'Coupes'], ['conti', contiName(G.S)], ['stats', 'Statistiques'], ['hist', 'Palmarès']];
-  const countrySel = `<div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${f.cc === C.code ? 'on' : ''}" data-a="cpCountry" data-c="${C.code}">${NATIONS[C.code].flag} ${C.name}</button>`).join('')}</div>`;
+  const countrySel = `<div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${f.cc === C.code ? 'on' : ''}" data-a="cpCountry" data-c="${C.code}">${flag(C.code)} ${C.name}</button>`).join('')}</div>`;
   const lvlSel = `<div class="seg mb"><button class="${f.lvl === 1 ? 'on' : ''}" data-a="cpLvl" data-l="1">${esc(S.comps[f.cc + '1'].name)}</button><button class="${f.lvl === 2 ? 'on' : ''}" data-a="cpLvl" data-l="2">${esc(S.comps[f.cc + '2'].name)}</button></div>`;
   let body = '';
   if (f.tab === 'league') {
@@ -90,12 +90,12 @@ function compsScreen() {
       <div class="list">${ms.map((m) => matchLine(S, m)).join('')}</div>`;
   } else if (f.tab === 'cup') {
     const cup = S.comps[f.cc + 'C'];
-    body = `${countrySel}<h2 class="mb">${esc(cup.name)}${cup.winner ? ` · 🏆 ${esc(S.clubs[cup.winner].name)}` : ''}</h2>
+    body = `${countrySel}<h2 class="mb">${esc(cup.name)}${cup.winner ? ` · ${ICON.trophy} ${esc(S.clubs[cup.winner].name)}` : ''}</h2>
       ${cup.stages.slice().reverse().filter((st) => st.mids.length).map((st) => `<div class="card"><div class="ttl"><h3>${st.label}</h3><span class="small muted">${fmtDate(st.day, 'wdm')}</span></div><div class="list">${st.mids.map((id) => matchLine(S, S.matches[id])).join('')}</div></div>`).join('') || '<div class="empty">Le tirage n\'a pas encore eu lieu.</div>'}`;
   } else if (f.tab === 'conti') {
     const c = S.comps.CONT;
     const ko = c.ko.slice().reverse().filter((st) => st.mids.length);
-    body = `<h2 class="mb">${contiName(G.S)}${c.winner ? ` · 🏆 ${esc(S.clubs[c.winner].name)}` : ''}</h2>
+    body = `<h2 class="mb">${contiName(G.S)}${c.winner ? ` · ${ICON.trophy} ${esc(S.clubs[c.winner].name)}` : ''}</h2>
       ${ko.map((st) => `<div class="card"><div class="ttl"><h3>${st.label}</h3><span class="small muted">${fmtDate(st.day, 'wdm')}</span></div><div class="list">${st.mids.map((id) => matchLine(S, S.matches[id])).join('')}</div></div>`).join('')}
       <div class="grid2 mt">${c.groups.map((g) => `<div class="card" style="padding:6px"><h3 style="padding:8px">Groupe ${g.n}</h3>${tableHTML(S, sortRows(Object.values(g.table), S), { group: true })}</div>`).join('')}</div>`;
   } else if (f.tab === 'stats') {
@@ -108,14 +108,14 @@ function compsScreen() {
       ['Meilleures notes (8 matchs min.)', ps.filter((p) => p.st.apps >= 8).sort((a, b) => avgRating(b) - avgRating(a)).slice(0, 15), (p) => avgRating(p).toFixed(2)],
       ['Clean sheets', ps.filter((p) => p.pos === 'GB').sort((a, b) => b.st.cs - a.st.cs).slice(0, 10), (p) => `${p.st.cs}`],
     ];
-    body = `<select class="input mb" style="max-width:360px" data-ch="cpScope"><option value="all" ${scope === 'all' ? 'selected' : ''}>Toutes compétitions, tous pays</option>${LEAGUE_COUNTRIES.flatMap((C) => [1, 2].map((l) => `<option value="${C.code + l}" ${scope === C.code + l ? 'selected' : ''}>${NATIONS[C.code].flag} ${esc(S.comps[C.code + l].name)}</option>`)).join('')}</select>
+    body = `<select class="input mb" style="max-width:360px" data-ch="cpScope"><option value="all" ${scope === 'all' ? 'selected' : ''}>Toutes compétitions, tous pays</option>${LEAGUE_COUNTRIES.flatMap((C) => [1, 2].map((l) => `<option value="${C.code + l}" ${scope === C.code + l ? 'selected' : ''}>${esc(S.comps[C.code + l].name)}</option>`)).join('')}</select>
       <p class="small muted mb">Statistiques toutes compétitions confondues, des joueurs des clubs sélectionnés.</p>
       <div class="grid2">${lists.map(([t, arr, v]) => `<div class="card"><h3 class="mb">${t}</h3><div class="list">${arr.map((p, i) => `<button class="li" data-a="player" data-id="${p.id}"><span class="muted" style="width:20px">${i + 1}</span>${crest(S.clubs[p.club], 'sm')}<span class="grow"><span class="nm">${esc(pname(p))}</span><span class="meta">${esc(S.clubs[p.club].name)} · ${p.st.apps} matchs</span></span><b class="num">${v(p)}</b></button>`).join('') || '<div class="empty">—</div>'}</div></div>`).join('')}</div>`;
   } else {
-    body = S.history.length ? S.history.map((h) => `<div class="card"><div class="ttl"><h3>Saison ${h.s}-${(h.s + 1) % 100}</h3>${h.gold ? `<span class="chip gold">⭐ Tactico d'Or : ${esc(h.gold.n)}</span>` : ''}</div>
+    body = S.history.length ? S.history.map((h) => `<div class="card"><div class="ttl"><h3>Saison ${h.s}-${(h.s + 1) % 100}</h3>${h.gold ? `<span class="chip gold">${ICON.star} Tactico d'Or : ${esc(h.gold.n)}</span>` : ''}</div>
       <div class="list">${h.leagues.map((l) => { const c = S.clubs[l.champ]; return `<button class="li" data-a="clubView" data-id="${c.id}">${crest(c, 'sm')}<span class="grow"><span class="nm">${esc(c.name)}</span><span class="meta">Champion · ${esc(l.name)}${l.awards[0] ? ` · buteur : ${esc(l.awards[0].n)} (${esc(l.awards[0].v)})` : ''}</span></span>${ICON.trophy}</button>`; }).join('')}
       ${h.cups.filter((c) => c.winner).map((c) => { const w = S.clubs[c.winner]; return `<button class="li" data-a="clubView" data-id="${w.id}">${crest(w, 'sm')}<span class="grow"><span class="nm">${esc(w.name)}</span><span class="meta">${esc(c.name)}</span></span></button>`; }).join('')}
-      ${h.conti ? `<button class="li" data-a="clubView" data-id="${h.conti}">${crest(S.clubs[h.conti], 'sm')}<span class="grow"><span class="nm">${esc(S.clubs[h.conti].name)}</span><span class="meta">${contiName(G.S)}</span></span><span class="chip gold">🏆</span></button>` : ''}</div></div>`).join('') : '<div class="empty">Le palmarès se remplira à la fin de la première saison.</div>';
+      ${h.conti ? `<button class="li" data-a="clubView" data-id="${h.conti}">${crest(S.clubs[h.conti], 'sm')}<span class="grow"><span class="nm">${esc(S.clubs[h.conti].name)}</span><span class="meta">${contiName(G.S)}</span></span><span class="chip gold">${ICON.trophy}</span></button>` : ''}</div></div>`).join('') : '<div class="empty">Le palmarès se remplira à la fin de la première saison.</div>';
   }
   return `<div class="ph"><div><h1>Compétitions</h1></div></div><div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${f.tab === k ? 'on' : ''}" data-a="cpTab" data-k="${k}">${l}</button>`).join('')}</div>${body}`;
 }
@@ -129,7 +129,7 @@ function clubViewModal(m) {
   const pos = leagueTable(S, comp).findIndex((r) => r.c === c.id) + 1;
   return `${modalHead(esc(c.name), `${esc(comp.name)} · ${pos}e · ${esc(c.stadium.name)} (${c.stadium.cap.toLocaleString('fr-FR')} places)`)}
     <div class="row mb">${crest(c, 'xl')}<div class="kpis grow"><div class="kpi"><small>Réputation</small><b>${stars(c.rep)}</b></div><div class="kpi"><small>Note de l'équipe</small><b>${Math.round(c.str)}</b></div><div class="kpi"><small>Entraîneur</small><b style="font-size:17px">${c.vacant ? 'Poste vacant' : esc(`${c.mgr.fn} ${c.mgr.ln}`)}</b></div><div class="kpi"><small>Valeur de l'effectif</small><b>${money(ps.reduce((s, p) => s + p.value, 0))}</b></div></div></div>
-    ${c.trophies.length ? `<div class="note mb">🏆 ${c.trophies.slice(-8).reverse().map((t) => `${esc(t.n)} ${t.s}`).join(' · ')}</div>` : ''}
+    ${c.trophies.length ? `<div class="note mb">${ICON.trophy} ${c.trophies.slice(-8).reverse().map((t) => `${esc(t.n)} ${t.s}`).join(' · ')}</div>` : ''}
     ${c.hist.length ? `<p class="small muted mb">Historique : ${c.hist.slice(0, 6).map((h) => `${h.s} ${h.pos}e (${esc(h.ln)})`).join(' · ')}</p>` : ''}
     <div class="list">${ps.map((p) => `<button class="li" data-a="player" data-id="${p.id}">${posB(p.pos)}<span class="grow"><span class="nm">${flag(p.nat)} ${esc(pname(p))}</span><span class="meta">${p.age} ans · ${money(p.value)}${p.listed ? ' · transférable' : ''}${p.inj > 0 ? ' · blessé' : ''}</span></span>${ovrB(p.ovr)}</button>`).join('')}</div>`;
 }
@@ -154,7 +154,7 @@ function reportModal(m) {
   return `${modalHead(`${esc(H.name)} ${mt.hg} - ${mt.ag} ${esc(A.name)}`, `${esc(compName(S, mt.c))}${mt.lb ? ' · ' + esc(mt.lb) : ''} · ${fmtDate(mt.d)}${mt.att ? ` · ${mt.att.toLocaleString('fr-FR')} spectateurs` : ''}`)}
     ${mt.pen ? `<div class="note mb">Tirs au but : ${mt.pen[0]} - ${mt.pen[1]}</div>` : mt.et ? '<div class="note mb">Après prolongation</div>' : ''}
     ${goals ? `<div class="feed mb" style="max-height:none">${goals}</div>` : '<p class="muted">Aucun but.</p>'}
-    ${motm ? `<p>⭐ Homme du match : <b>${esc(pname(motm))}</b></p>` : ''}
+    ${motm ? `<p>${ICON.star} Homme du match : <b>${esc(pname(motm))}</b></p>` : ''}
     ${st ? `<div class="card flat mt">${bar('Possession %', st.pos[0], st.pos[1])}${bar('Tirs', st.sh[0], st.sh[1])}${bar('Cadrés', st.on[0], st.on[1])}${bar('xG', st.xg[0], st.xg[1], (x) => x.toFixed(1))}${bar('Corners', st.cor[0], st.cor[1])}${bar('Fautes', st.fo[0], st.fo[1])}${bar('Cartons jaunes', st.yc[0], st.yc[1])}</div>` : ''}
     ${ratings}`;
 }

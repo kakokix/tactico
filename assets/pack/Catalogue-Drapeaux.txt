@@ -1,0 +1,298 @@
+﻿Tactico Outline — Drapeaux du monde
+
+270 drapeaux et une icône de remplacement, PNG transparents de 256 × 256 px.
+249 entrées ISO 3166-1 et 21 drapeaux supplémentaires.
+Les noms des fichiers commencent par leur code.
+
+Les illustrations reprennent le catalogue flag-icons v7.5.0 et son choix de drapeau pour chaque territoire.
+Le format habituel a des coins arrondis. La Suisse et le Vatican gardent un dessin carré, le Népal garde sa découpe.
+GB-NIR représente la bannière d’Ulster utilisée pour la sélection de football d’Irlande du Nord.
+XX est une icône de remplacement à utiliser quand le pays n’est pas renseigné.
+
+Source et licence
+https://github.com/lipis/flag-icons/tree/v7.5.0
+Voir LICENCE-flag-icons-MIT.txt.
+
+Pays et territoires
+
+AD       Andorre  |  PNG/Drapeaux/Monde/Pays-et-territoires/AD-Andorre.png
+AE       Émirats arabes unis  |  PNG/Drapeaux/Monde/Pays-et-territoires/AE-Emirats-arabes-unis.png
+AF       Afghanistan  |  PNG/Drapeaux/Monde/Pays-et-territoires/AF-Afghanistan.png
+AG       Antigua-et-Barbuda  |  PNG/Drapeaux/Monde/Pays-et-territoires/AG-Antigua-et-Barbuda.png
+AI       Anguilla  |  PNG/Drapeaux/Monde/Pays-et-territoires/AI-Anguilla.png
+AL       Albanie  |  PNG/Drapeaux/Monde/Pays-et-territoires/AL-Albanie.png
+AM       Arménie  |  PNG/Drapeaux/Monde/Pays-et-territoires/AM-Armenie.png
+AO       Angola  |  PNG/Drapeaux/Monde/Pays-et-territoires/AO-Angola.png
+AQ       Antarctique  |  PNG/Drapeaux/Monde/Pays-et-territoires/AQ-Antarctique.png
+AR       Argentine  |  PNG/Drapeaux/Monde/Pays-et-territoires/AR-Argentine.png
+AS       Samoa américaines  |  PNG/Drapeaux/Monde/Pays-et-territoires/AS-Samoa-americaines.png
+AT       Autriche  |  PNG/Drapeaux/Monde/Pays-et-territoires/AT-Autriche.png
+AU       Australie  |  PNG/Drapeaux/Monde/Pays-et-territoires/AU-Australie.png
+AW       Aruba  |  PNG/Drapeaux/Monde/Pays-et-territoires/AW-Aruba.png
+AX       Îles Åland  |  PNG/Drapeaux/Monde/Pays-et-territoires/AX-Iles-Aland.png
+AZ       Azerbaïdjan  |  PNG/Drapeaux/Monde/Pays-et-territoires/AZ-Azerbaidjan.png
+BA       Bosnie-Herzégovine  |  PNG/Drapeaux/Monde/Pays-et-territoires/BA-Bosnie-Herzegovine.png
+BB       Barbade  |  PNG/Drapeaux/Monde/Pays-et-territoires/BB-Barbade.png
+BD       Bangladesh  |  PNG/Drapeaux/Monde/Pays-et-territoires/BD-Bangladesh.png
+BE       Belgique  |  PNG/Drapeaux/Monde/Pays-et-territoires/BE-Belgique.png
+BF       Burkina Faso  |  PNG/Drapeaux/Monde/Pays-et-territoires/BF-Burkina-Faso.png
+BG       Bulgarie  |  PNG/Drapeaux/Monde/Pays-et-territoires/BG-Bulgarie.png
+BH       Bahreïn  |  PNG/Drapeaux/Monde/Pays-et-territoires/BH-Bahrein.png
+BI       Burundi  |  PNG/Drapeaux/Monde/Pays-et-territoires/BI-Burundi.png
+BJ       Bénin  |  PNG/Drapeaux/Monde/Pays-et-territoires/BJ-Benin.png
+BL       Saint-Barthélemy  |  PNG/Drapeaux/Monde/Pays-et-territoires/BL-Saint-Barthelemy.png
+BM       Bermudes  |  PNG/Drapeaux/Monde/Pays-et-territoires/BM-Bermudes.png
+BN       Brunei  |  PNG/Drapeaux/Monde/Pays-et-territoires/BN-Brunei.png
+BO       Bolivie  |  PNG/Drapeaux/Monde/Pays-et-territoires/BO-Bolivie.png
+BQ       Pays-Bas caribéens  |  PNG/Drapeaux/Monde/Pays-et-territoires/BQ-Pays-Bas-caribeens.png
+BR       Brésil  |  PNG/Drapeaux/Monde/Pays-et-territoires/BR-Bresil.png
+BS       Bahamas  |  PNG/Drapeaux/Monde/Pays-et-territoires/BS-Bahamas.png
+BT       Bhoutan  |  PNG/Drapeaux/Monde/Pays-et-territoires/BT-Bhoutan.png
+BV       Île Bouvet  |  PNG/Drapeaux/Monde/Pays-et-territoires/BV-Ile-Bouvet.png
+BW       Botswana  |  PNG/Drapeaux/Monde/Pays-et-territoires/BW-Botswana.png
+BY       Biélorussie  |  PNG/Drapeaux/Monde/Pays-et-territoires/BY-Bielorussie.png
+BZ       Belize  |  PNG/Drapeaux/Monde/Pays-et-territoires/BZ-Belize.png
+CA       Canada  |  PNG/Drapeaux/Monde/Pays-et-territoires/CA-Canada.png
+CC       Îles Cocos  |  PNG/Drapeaux/Monde/Pays-et-territoires/CC-Iles-Cocos.png
+CD       Congo-Kinshasa  |  PNG/Drapeaux/Monde/Pays-et-territoires/CD-Congo-Kinshasa.png
+CF       République centrafricaine  |  PNG/Drapeaux/Monde/Pays-et-territoires/CF-Republique-centrafricaine.png
+CG       Congo-Brazzaville  |  PNG/Drapeaux/Monde/Pays-et-territoires/CG-Congo-Brazzaville.png
+CH       Suisse  |  PNG/Drapeaux/Monde/Pays-et-territoires/CH-Suisse.png
+CI       Côte d’Ivoire  |  PNG/Drapeaux/Monde/Pays-et-territoires/CI-Cote-d-Ivoire.png
+CK       Îles Cook  |  PNG/Drapeaux/Monde/Pays-et-territoires/CK-Iles-Cook.png
+CL       Chili  |  PNG/Drapeaux/Monde/Pays-et-territoires/CL-Chili.png
+CM       Cameroun  |  PNG/Drapeaux/Monde/Pays-et-territoires/CM-Cameroun.png
+CN       Chine  |  PNG/Drapeaux/Monde/Pays-et-territoires/CN-Chine.png
+CO       Colombie  |  PNG/Drapeaux/Monde/Pays-et-territoires/CO-Colombie.png
+CR       Costa Rica  |  PNG/Drapeaux/Monde/Pays-et-territoires/CR-Costa-Rica.png
+CU       Cuba  |  PNG/Drapeaux/Monde/Pays-et-territoires/CU-Cuba.png
+CV       Cap-Vert  |  PNG/Drapeaux/Monde/Pays-et-territoires/CV-Cap-Vert.png
+CW       Curaçao  |  PNG/Drapeaux/Monde/Pays-et-territoires/CW-Curacao.png
+CX       Île Christmas  |  PNG/Drapeaux/Monde/Pays-et-territoires/CX-Ile-Christmas.png
+CY       Chypre  |  PNG/Drapeaux/Monde/Pays-et-territoires/CY-Chypre.png
+CZ       Tchéquie  |  PNG/Drapeaux/Monde/Pays-et-territoires/CZ-Tchequie.png
+DE       Allemagne  |  PNG/Drapeaux/Monde/Pays-et-territoires/DE-Allemagne.png
+DJ       Djibouti  |  PNG/Drapeaux/Monde/Pays-et-territoires/DJ-Djibouti.png
+DK       Danemark  |  PNG/Drapeaux/Monde/Pays-et-territoires/DK-Danemark.png
+DM       Dominique  |  PNG/Drapeaux/Monde/Pays-et-territoires/DM-Dominique.png
+DO       République dominicaine  |  PNG/Drapeaux/Monde/Pays-et-territoires/DO-Republique-dominicaine.png
+DZ       Algérie  |  PNG/Drapeaux/Monde/Pays-et-territoires/DZ-Algerie.png
+EC       Équateur  |  PNG/Drapeaux/Monde/Pays-et-territoires/EC-Equateur.png
+EE       Estonie  |  PNG/Drapeaux/Monde/Pays-et-territoires/EE-Estonie.png
+EG       Égypte  |  PNG/Drapeaux/Monde/Pays-et-territoires/EG-Egypte.png
+EH       Sahara occidental  |  PNG/Drapeaux/Monde/Pays-et-territoires/EH-Sahara-occidental.png
+ER       Érythrée  |  PNG/Drapeaux/Monde/Pays-et-territoires/ER-Erythree.png
+ES       Espagne  |  PNG/Drapeaux/Monde/Pays-et-territoires/ES-Espagne.png
+ET       Éthiopie  |  PNG/Drapeaux/Monde/Pays-et-territoires/ET-Ethiopie.png
+FI       Finlande  |  PNG/Drapeaux/Monde/Pays-et-territoires/FI-Finlande.png
+FJ       Fidji  |  PNG/Drapeaux/Monde/Pays-et-territoires/FJ-Fidji.png
+FK       Îles Malouines  |  PNG/Drapeaux/Monde/Pays-et-territoires/FK-Iles-Malouines.png
+FM       Micronésie  |  PNG/Drapeaux/Monde/Pays-et-territoires/FM-Micronesie.png
+FO       Îles Féroé  |  PNG/Drapeaux/Monde/Pays-et-territoires/FO-Iles-Feroe.png
+FR       France  |  PNG/Drapeaux/Monde/Pays-et-territoires/FR-France.png
+GA       Gabon  |  PNG/Drapeaux/Monde/Pays-et-territoires/GA-Gabon.png
+GB       Royaume-Uni  |  PNG/Drapeaux/Monde/Pays-et-territoires/GB-Royaume-Uni.png
+GD       Grenade  |  PNG/Drapeaux/Monde/Pays-et-territoires/GD-Grenade.png
+GE       Géorgie  |  PNG/Drapeaux/Monde/Pays-et-territoires/GE-Georgie.png
+GF       Guyane française  |  PNG/Drapeaux/Monde/Pays-et-territoires/GF-Guyane-francaise.png
+GG       Guernesey  |  PNG/Drapeaux/Monde/Pays-et-territoires/GG-Guernesey.png
+GH       Ghana  |  PNG/Drapeaux/Monde/Pays-et-territoires/GH-Ghana.png
+GI       Gibraltar  |  PNG/Drapeaux/Monde/Pays-et-territoires/GI-Gibraltar.png
+GL       Groenland  |  PNG/Drapeaux/Monde/Pays-et-territoires/GL-Groenland.png
+GM       Gambie  |  PNG/Drapeaux/Monde/Pays-et-territoires/GM-Gambie.png
+GN       Guinée  |  PNG/Drapeaux/Monde/Pays-et-territoires/GN-Guinee.png
+GP       Guadeloupe  |  PNG/Drapeaux/Monde/Pays-et-territoires/GP-Guadeloupe.png
+GQ       Guinée équatoriale  |  PNG/Drapeaux/Monde/Pays-et-territoires/GQ-Guinee-equatoriale.png
+GR       Grèce  |  PNG/Drapeaux/Monde/Pays-et-territoires/GR-Grece.png
+GS       Géorgie du Sud-et-les Îles Sandwich du Sud  |  PNG/Drapeaux/Monde/Pays-et-territoires/GS-Georgie-du-Sud-et-les-Iles-Sandwich-du-Sud.png
+GT       Guatemala  |  PNG/Drapeaux/Monde/Pays-et-territoires/GT-Guatemala.png
+GU       Guam  |  PNG/Drapeaux/Monde/Pays-et-territoires/GU-Guam.png
+GW       Guinée-Bissau  |  PNG/Drapeaux/Monde/Pays-et-territoires/GW-Guinee-Bissau.png
+GY       Guyana  |  PNG/Drapeaux/Monde/Pays-et-territoires/GY-Guyana.png
+HK       R.A.S. chinoise de Hong Kong  |  PNG/Drapeaux/Monde/Pays-et-territoires/HK-R-A-S-chinoise-de-Hong-Kong.png
+HM       Îles Heard-et-MacDonald  |  PNG/Drapeaux/Monde/Pays-et-territoires/HM-Iles-Heard-et-MacDonald.png
+HN       Honduras  |  PNG/Drapeaux/Monde/Pays-et-territoires/HN-Honduras.png
+HR       Croatie  |  PNG/Drapeaux/Monde/Pays-et-territoires/HR-Croatie.png
+HT       Haïti  |  PNG/Drapeaux/Monde/Pays-et-territoires/HT-Haiti.png
+HU       Hongrie  |  PNG/Drapeaux/Monde/Pays-et-territoires/HU-Hongrie.png
+ID       Indonésie  |  PNG/Drapeaux/Monde/Pays-et-territoires/ID-Indonesie.png
+IE       Irlande  |  PNG/Drapeaux/Monde/Pays-et-territoires/IE-Irlande.png
+IL       Israël  |  PNG/Drapeaux/Monde/Pays-et-territoires/IL-Israel.png
+IM       Île de Man  |  PNG/Drapeaux/Monde/Pays-et-territoires/IM-Ile-de-Man.png
+IN       Inde  |  PNG/Drapeaux/Monde/Pays-et-territoires/IN-Inde.png
+IO       Territoire britannique de l’océan Indien  |  PNG/Drapeaux/Monde/Pays-et-territoires/IO-Territoire-britannique-de-l-ocean-Indien.png
+IQ       Irak  |  PNG/Drapeaux/Monde/Pays-et-territoires/IQ-Irak.png
+IR       Iran  |  PNG/Drapeaux/Monde/Pays-et-territoires/IR-Iran.png
+IS       Islande  |  PNG/Drapeaux/Monde/Pays-et-territoires/IS-Islande.png
+IT       Italie  |  PNG/Drapeaux/Monde/Pays-et-territoires/IT-Italie.png
+JE       Jersey  |  PNG/Drapeaux/Monde/Pays-et-territoires/JE-Jersey.png
+JM       Jamaïque  |  PNG/Drapeaux/Monde/Pays-et-territoires/JM-Jamaique.png
+JO       Jordanie  |  PNG/Drapeaux/Monde/Pays-et-territoires/JO-Jordanie.png
+JP       Japon  |  PNG/Drapeaux/Monde/Pays-et-territoires/JP-Japon.png
+KE       Kenya  |  PNG/Drapeaux/Monde/Pays-et-territoires/KE-Kenya.png
+KG       Kirghizstan  |  PNG/Drapeaux/Monde/Pays-et-territoires/KG-Kirghizstan.png
+KH       Cambodge  |  PNG/Drapeaux/Monde/Pays-et-territoires/KH-Cambodge.png
+KI       Kiribati  |  PNG/Drapeaux/Monde/Pays-et-territoires/KI-Kiribati.png
+KM       Comores  |  PNG/Drapeaux/Monde/Pays-et-territoires/KM-Comores.png
+KN       Saint-Christophe-et-Niévès  |  PNG/Drapeaux/Monde/Pays-et-territoires/KN-Saint-Christophe-et-Nieves.png
+KP       Corée du Nord  |  PNG/Drapeaux/Monde/Pays-et-territoires/KP-Coree-du-Nord.png
+KR       Corée du Sud  |  PNG/Drapeaux/Monde/Pays-et-territoires/KR-Coree-du-Sud.png
+KW       Koweït  |  PNG/Drapeaux/Monde/Pays-et-territoires/KW-Koweit.png
+KY       Îles Caïmans  |  PNG/Drapeaux/Monde/Pays-et-territoires/KY-Iles-Caimans.png
+KZ       Kazakhstan  |  PNG/Drapeaux/Monde/Pays-et-territoires/KZ-Kazakhstan.png
+LA       Laos  |  PNG/Drapeaux/Monde/Pays-et-territoires/LA-Laos.png
+LB       Liban  |  PNG/Drapeaux/Monde/Pays-et-territoires/LB-Liban.png
+LC       Sainte-Lucie  |  PNG/Drapeaux/Monde/Pays-et-territoires/LC-Sainte-Lucie.png
+LI       Liechtenstein  |  PNG/Drapeaux/Monde/Pays-et-territoires/LI-Liechtenstein.png
+LK       Sri Lanka  |  PNG/Drapeaux/Monde/Pays-et-territoires/LK-Sri-Lanka.png
+LR       Liberia  |  PNG/Drapeaux/Monde/Pays-et-territoires/LR-Liberia.png
+LS       Lesotho  |  PNG/Drapeaux/Monde/Pays-et-territoires/LS-Lesotho.png
+LT       Lituanie  |  PNG/Drapeaux/Monde/Pays-et-territoires/LT-Lituanie.png
+LU       Luxembourg  |  PNG/Drapeaux/Monde/Pays-et-territoires/LU-Luxembourg.png
+LV       Lettonie  |  PNG/Drapeaux/Monde/Pays-et-territoires/LV-Lettonie.png
+LY       Libye  |  PNG/Drapeaux/Monde/Pays-et-territoires/LY-Libye.png
+MA       Maroc  |  PNG/Drapeaux/Monde/Pays-et-territoires/MA-Maroc.png
+MC       Monaco  |  PNG/Drapeaux/Monde/Pays-et-territoires/MC-Monaco.png
+MD       Moldavie  |  PNG/Drapeaux/Monde/Pays-et-territoires/MD-Moldavie.png
+ME       Monténégro  |  PNG/Drapeaux/Monde/Pays-et-territoires/ME-Montenegro.png
+MF       Saint-Martin  |  PNG/Drapeaux/Monde/Pays-et-territoires/MF-Saint-Martin.png
+MG       Madagascar  |  PNG/Drapeaux/Monde/Pays-et-territoires/MG-Madagascar.png
+MH       Îles Marshall  |  PNG/Drapeaux/Monde/Pays-et-territoires/MH-Iles-Marshall.png
+MK       Macédoine du Nord  |  PNG/Drapeaux/Monde/Pays-et-territoires/MK-Macedoine-du-Nord.png
+ML       Mali  |  PNG/Drapeaux/Monde/Pays-et-territoires/ML-Mali.png
+MM       Myanmar (Birmanie)  |  PNG/Drapeaux/Monde/Pays-et-territoires/MM-Myanmar-Birmanie.png
+MN       Mongolie  |  PNG/Drapeaux/Monde/Pays-et-territoires/MN-Mongolie.png
+MO       R.A.S. chinoise de Macao  |  PNG/Drapeaux/Monde/Pays-et-territoires/MO-R-A-S-chinoise-de-Macao.png
+MP       Îles Mariannes du Nord  |  PNG/Drapeaux/Monde/Pays-et-territoires/MP-Iles-Mariannes-du-Nord.png
+MQ       Martinique  |  PNG/Drapeaux/Monde/Pays-et-territoires/MQ-Martinique.png
+MR       Mauritanie  |  PNG/Drapeaux/Monde/Pays-et-territoires/MR-Mauritanie.png
+MS       Montserrat  |  PNG/Drapeaux/Monde/Pays-et-territoires/MS-Montserrat.png
+MT       Malte  |  PNG/Drapeaux/Monde/Pays-et-territoires/MT-Malte.png
+MU       Maurice  |  PNG/Drapeaux/Monde/Pays-et-territoires/MU-Maurice.png
+MV       Maldives  |  PNG/Drapeaux/Monde/Pays-et-territoires/MV-Maldives.png
+MW       Malawi  |  PNG/Drapeaux/Monde/Pays-et-territoires/MW-Malawi.png
+MX       Mexique  |  PNG/Drapeaux/Monde/Pays-et-territoires/MX-Mexique.png
+MY       Malaisie  |  PNG/Drapeaux/Monde/Pays-et-territoires/MY-Malaisie.png
+MZ       Mozambique  |  PNG/Drapeaux/Monde/Pays-et-territoires/MZ-Mozambique.png
+NA       Namibie  |  PNG/Drapeaux/Monde/Pays-et-territoires/NA-Namibie.png
+NC       Nouvelle-Calédonie  |  PNG/Drapeaux/Monde/Pays-et-territoires/NC-Nouvelle-Caledonie.png
+NE       Niger  |  PNG/Drapeaux/Monde/Pays-et-territoires/NE-Niger.png
+NF       Île Norfolk  |  PNG/Drapeaux/Monde/Pays-et-territoires/NF-Ile-Norfolk.png
+NG       Nigeria  |  PNG/Drapeaux/Monde/Pays-et-territoires/NG-Nigeria.png
+NI       Nicaragua  |  PNG/Drapeaux/Monde/Pays-et-territoires/NI-Nicaragua.png
+NL       Pays-Bas  |  PNG/Drapeaux/Monde/Pays-et-territoires/NL-Pays-Bas.png
+NO       Norvège  |  PNG/Drapeaux/Monde/Pays-et-territoires/NO-Norvege.png
+NP       Népal  |  PNG/Drapeaux/Monde/Pays-et-territoires/NP-Nepal.png
+NR       Nauru  |  PNG/Drapeaux/Monde/Pays-et-territoires/NR-Nauru.png
+NU       Niue  |  PNG/Drapeaux/Monde/Pays-et-territoires/NU-Niue.png
+NZ       Nouvelle-Zélande  |  PNG/Drapeaux/Monde/Pays-et-territoires/NZ-Nouvelle-Zelande.png
+OM       Oman  |  PNG/Drapeaux/Monde/Pays-et-territoires/OM-Oman.png
+PA       Panama  |  PNG/Drapeaux/Monde/Pays-et-territoires/PA-Panama.png
+PE       Pérou  |  PNG/Drapeaux/Monde/Pays-et-territoires/PE-Perou.png
+PF       Polynésie française  |  PNG/Drapeaux/Monde/Pays-et-territoires/PF-Polynesie-francaise.png
+PG       Papouasie-Nouvelle-Guinée  |  PNG/Drapeaux/Monde/Pays-et-territoires/PG-Papouasie-Nouvelle-Guinee.png
+PH       Philippines  |  PNG/Drapeaux/Monde/Pays-et-territoires/PH-Philippines.png
+PK       Pakistan  |  PNG/Drapeaux/Monde/Pays-et-territoires/PK-Pakistan.png
+PL       Pologne  |  PNG/Drapeaux/Monde/Pays-et-territoires/PL-Pologne.png
+PM       Saint-Pierre-et-Miquelon  |  PNG/Drapeaux/Monde/Pays-et-territoires/PM-Saint-Pierre-et-Miquelon.png
+PN       Îles Pitcairn  |  PNG/Drapeaux/Monde/Pays-et-territoires/PN-Iles-Pitcairn.png
+PR       Porto Rico  |  PNG/Drapeaux/Monde/Pays-et-territoires/PR-Porto-Rico.png
+PS       Palestine  |  PNG/Drapeaux/Monde/Pays-et-territoires/PS-Palestine.png
+PT       Portugal  |  PNG/Drapeaux/Monde/Pays-et-territoires/PT-Portugal.png
+PW       Palaos  |  PNG/Drapeaux/Monde/Pays-et-territoires/PW-Palaos.png
+PY       Paraguay  |  PNG/Drapeaux/Monde/Pays-et-territoires/PY-Paraguay.png
+QA       Qatar  |  PNG/Drapeaux/Monde/Pays-et-territoires/QA-Qatar.png
+RE       La Réunion  |  PNG/Drapeaux/Monde/Pays-et-territoires/RE-La-Reunion.png
+RO       Roumanie  |  PNG/Drapeaux/Monde/Pays-et-territoires/RO-Roumanie.png
+RS       Serbie  |  PNG/Drapeaux/Monde/Pays-et-territoires/RS-Serbie.png
+RU       Russie  |  PNG/Drapeaux/Monde/Pays-et-territoires/RU-Russie.png
+RW       Rwanda  |  PNG/Drapeaux/Monde/Pays-et-territoires/RW-Rwanda.png
+SA       Arabie saoudite  |  PNG/Drapeaux/Monde/Pays-et-territoires/SA-Arabie-saoudite.png
+SB       Îles Salomon  |  PNG/Drapeaux/Monde/Pays-et-territoires/SB-Iles-Salomon.png
+SC       Seychelles  |  PNG/Drapeaux/Monde/Pays-et-territoires/SC-Seychelles.png
+SD       Soudan  |  PNG/Drapeaux/Monde/Pays-et-territoires/SD-Soudan.png
+SE       Suède  |  PNG/Drapeaux/Monde/Pays-et-territoires/SE-Suede.png
+SG       Singapour  |  PNG/Drapeaux/Monde/Pays-et-territoires/SG-Singapour.png
+SH       Sainte-Hélène  |  PNG/Drapeaux/Monde/Pays-et-territoires/SH-Sainte-Helene.png
+SI       Slovénie  |  PNG/Drapeaux/Monde/Pays-et-territoires/SI-Slovenie.png
+SJ       Svalbard et Jan Mayen  |  PNG/Drapeaux/Monde/Pays-et-territoires/SJ-Svalbard-et-Jan-Mayen.png
+SK       Slovaquie  |  PNG/Drapeaux/Monde/Pays-et-territoires/SK-Slovaquie.png
+SL       Sierra Leone  |  PNG/Drapeaux/Monde/Pays-et-territoires/SL-Sierra-Leone.png
+SM       Saint-Marin  |  PNG/Drapeaux/Monde/Pays-et-territoires/SM-Saint-Marin.png
+SN       Sénégal  |  PNG/Drapeaux/Monde/Pays-et-territoires/SN-Senegal.png
+SO       Somalie  |  PNG/Drapeaux/Monde/Pays-et-territoires/SO-Somalie.png
+SR       Suriname  |  PNG/Drapeaux/Monde/Pays-et-territoires/SR-Suriname.png
+SS       Soudan du Sud  |  PNG/Drapeaux/Monde/Pays-et-territoires/SS-Soudan-du-Sud.png
+ST       Sao Tomé-et-Principe  |  PNG/Drapeaux/Monde/Pays-et-territoires/ST-Sao-Tome-et-Principe.png
+SV       Salvador  |  PNG/Drapeaux/Monde/Pays-et-territoires/SV-Salvador.png
+SX       Saint-Martin (partie néerlandaise)  |  PNG/Drapeaux/Monde/Pays-et-territoires/SX-Saint-Martin-partie-neerlandaise.png
+SY       Syrie  |  PNG/Drapeaux/Monde/Pays-et-territoires/SY-Syrie.png
+SZ       Eswatini  |  PNG/Drapeaux/Monde/Pays-et-territoires/SZ-Eswatini.png
+TC       Îles Turques-et-Caïques  |  PNG/Drapeaux/Monde/Pays-et-territoires/TC-Iles-Turques-et-Caiques.png
+TD       Tchad  |  PNG/Drapeaux/Monde/Pays-et-territoires/TD-Tchad.png
+TF       Terres australes françaises  |  PNG/Drapeaux/Monde/Pays-et-territoires/TF-Terres-australes-francaises.png
+TG       Togo  |  PNG/Drapeaux/Monde/Pays-et-territoires/TG-Togo.png
+TH       Thaïlande  |  PNG/Drapeaux/Monde/Pays-et-territoires/TH-Thailande.png
+TJ       Tadjikistan  |  PNG/Drapeaux/Monde/Pays-et-territoires/TJ-Tadjikistan.png
+TK       Tokelau  |  PNG/Drapeaux/Monde/Pays-et-territoires/TK-Tokelau.png
+TL       Timor oriental  |  PNG/Drapeaux/Monde/Pays-et-territoires/TL-Timor-oriental.png
+TM       Turkménistan  |  PNG/Drapeaux/Monde/Pays-et-territoires/TM-Turkmenistan.png
+TN       Tunisie  |  PNG/Drapeaux/Monde/Pays-et-territoires/TN-Tunisie.png
+TO       Tonga  |  PNG/Drapeaux/Monde/Pays-et-territoires/TO-Tonga.png
+TR       Turquie  |  PNG/Drapeaux/Monde/Pays-et-territoires/TR-Turquie.png
+TT       Trinité-et-Tobago  |  PNG/Drapeaux/Monde/Pays-et-territoires/TT-Trinite-et-Tobago.png
+TV       Tuvalu  |  PNG/Drapeaux/Monde/Pays-et-territoires/TV-Tuvalu.png
+TW       Taïwan  |  PNG/Drapeaux/Monde/Pays-et-territoires/TW-Taiwan.png
+TZ       Tanzanie  |  PNG/Drapeaux/Monde/Pays-et-territoires/TZ-Tanzanie.png
+UA       Ukraine  |  PNG/Drapeaux/Monde/Pays-et-territoires/UA-Ukraine.png
+UG       Ouganda  |  PNG/Drapeaux/Monde/Pays-et-territoires/UG-Ouganda.png
+UM       Îles mineures éloignées des États-Unis  |  PNG/Drapeaux/Monde/Pays-et-territoires/UM-Iles-mineures-eloignees-des-Etats-Unis.png
+US       États-Unis  |  PNG/Drapeaux/Monde/Pays-et-territoires/US-Etats-Unis.png
+UY       Uruguay  |  PNG/Drapeaux/Monde/Pays-et-territoires/UY-Uruguay.png
+UZ       Ouzbékistan  |  PNG/Drapeaux/Monde/Pays-et-territoires/UZ-Ouzbekistan.png
+VA       État de la Cité du Vatican  |  PNG/Drapeaux/Monde/Pays-et-territoires/VA-Etat-de-la-Cite-du-Vatican.png
+VC       Saint-Vincent-et-les Grenadines  |  PNG/Drapeaux/Monde/Pays-et-territoires/VC-Saint-Vincent-et-les-Grenadines.png
+VE       Venezuela  |  PNG/Drapeaux/Monde/Pays-et-territoires/VE-Venezuela.png
+VG       Îles Vierges britanniques  |  PNG/Drapeaux/Monde/Pays-et-territoires/VG-Iles-Vierges-britanniques.png
+VI       Îles Vierges des États-Unis  |  PNG/Drapeaux/Monde/Pays-et-territoires/VI-Iles-Vierges-des-Etats-Unis.png
+VN       Viêt Nam  |  PNG/Drapeaux/Monde/Pays-et-territoires/VN-Viet-Nam.png
+VU       Vanuatu  |  PNG/Drapeaux/Monde/Pays-et-territoires/VU-Vanuatu.png
+WF       Wallis-et-Futuna  |  PNG/Drapeaux/Monde/Pays-et-territoires/WF-Wallis-et-Futuna.png
+WS       Samoa  |  PNG/Drapeaux/Monde/Pays-et-territoires/WS-Samoa.png
+YE       Yémen  |  PNG/Drapeaux/Monde/Pays-et-territoires/YE-Yemen.png
+YT       Mayotte  |  PNG/Drapeaux/Monde/Pays-et-territoires/YT-Mayotte.png
+ZA       Afrique du Sud  |  PNG/Drapeaux/Monde/Pays-et-territoires/ZA-Afrique-du-Sud.png
+ZM       Zambie  |  PNG/Drapeaux/Monde/Pays-et-territoires/ZM-Zambie.png
+ZW       Zimbabwe  |  PNG/Drapeaux/Monde/Pays-et-territoires/ZW-Zimbabwe.png
+
+Selections et regions
+
+CP       Île de Clipperton  |  PNG/Drapeaux/Monde/Selections-et-regions/CP-Ile-de-Clipperton.png
+DG       Diego Garcia  |  PNG/Drapeaux/Monde/Selections-et-regions/DG-Diego-Garcia.png
+ES-CT    Catalogne  |  PNG/Drapeaux/Monde/Selections-et-regions/ES-CT-Catalogne.png
+ES-GA    Galice  |  PNG/Drapeaux/Monde/Selections-et-regions/ES-GA-Galice.png
+ES-PV    Pays basque  |  PNG/Drapeaux/Monde/Selections-et-regions/ES-PV-Pays-basque.png
+GB-ENG   Angleterre  |  PNG/Drapeaux/Monde/Selections-et-regions/GB-ENG-Angleterre.png
+GB-NIR   Irlande du Nord (football)  |  PNG/Drapeaux/Monde/Selections-et-regions/GB-NIR-Irlande-du-Nord-football.png
+GB-SCT   Écosse  |  PNG/Drapeaux/Monde/Selections-et-regions/GB-SCT-Ecosse.png
+GB-WLS   Pays de Galles  |  PNG/Drapeaux/Monde/Selections-et-regions/GB-WLS-Pays-de-Galles.png
+IC       Îles Canaries  |  PNG/Drapeaux/Monde/Selections-et-regions/IC-Iles-Canaries.png
+SH-AC    Île de l’Ascension  |  PNG/Drapeaux/Monde/Selections-et-regions/SH-AC-Ile-de-l-Ascension.png
+SH-HL    Sainte-Hélène  |  PNG/Drapeaux/Monde/Selections-et-regions/SH-HL-Sainte-Helene.png
+SH-TA    Tristan da Cunha  |  PNG/Drapeaux/Monde/Selections-et-regions/SH-TA-Tristan-da-Cunha.png
+XK       Kosovo  |  PNG/Drapeaux/Monde/Selections-et-regions/XK-Kosovo.png
+
+Organisations
+
+ARAB     Ligue arabe  |  PNG/Drapeaux/Monde/Organisations/ARAB-Ligue-arabe.png
+ASEAN    ASEAN  |  PNG/Drapeaux/Monde/Organisations/ASEAN-ASEAN.png
+CEFTA    Accord de libre-échange centre-européen  |  PNG/Drapeaux/Monde/Organisations/CEFTA-Accord-de-libre-echange-centre-europeen.png
+EAC      Communauté d’Afrique de l’Est  |  PNG/Drapeaux/Monde/Organisations/EAC-Communaute-d-Afrique-de-l-Est.png
+EU       Union européenne  |  PNG/Drapeaux/Monde/Organisations/EU-Union-europeenne.png
+PC       Communauté du Pacifique  |  PNG/Drapeaux/Monde/Organisations/PC-Communaute-du-Pacifique.png
+UN       Nations unies  |  PNG/Drapeaux/Monde/Organisations/UN-Nations-unies.png
+
+Interface
+
+XX       Drapeau inconnu  |  PNG/Drapeaux/Monde/Interface/XX-Drapeau-inconnu.png
+

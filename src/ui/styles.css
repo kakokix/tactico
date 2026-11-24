@@ -52,6 +52,8 @@ p{margin:.4em 0}
   border-top:1px solid var(--line);padding-bottom:var(--safeb)}
 .bnav button{background:none;border:0;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 9px;font-size:11px;cursor:pointer;position:relative}
 .bnav button svg{width:23px;height:23px}
+.bnav button .ic{width:26px;height:26px;opacity:.82}
+.bnav button.on .ic{opacity:1;transform:scale(1.06)}
 .bnav button.on{color:var(--lime)}
 .dot{position:absolute;top:4px;right:calc(50% - 18px);min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;padding:0 4px}
 @media(min-width:960px){
@@ -62,6 +64,8 @@ p{margin:.4em 0}
 }
 .side button{display:flex;align-items:center;gap:11px;width:100%;background:none;border:0;color:var(--mute);padding:10px 12px;border-radius:10px;cursor:pointer;text-align:left;font-size:15px;position:relative}
 .side button svg{width:20px;height:20px;flex:none}
+.side button .ic{width:24px;height:24px;opacity:.82}
+.side button:hover .ic,.side button.on .ic{opacity:1}
 .side button:hover{background:var(--panel);color:var(--ink)}
 .side button.on{background:var(--panel2);color:var(--clubacc,var(--lime));box-shadow:inset 3px 0 0 var(--clubacc,var(--lime))}
 .side .dot{position:static;margin-left:auto}
@@ -93,8 +97,10 @@ p{margin:.4em 0}
 .btn.block{width:100%}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 .btn svg{width:17px;height:17px}
+.btn .ic{width:21px;height:21px;margin:-2px 0}
 .icon-btn{width:42px;height:42px;display:grid;place-items:center;border-radius:11px;border:1px solid var(--line2);background:var(--panel2);cursor:pointer;flex:none}
 .icon-btn svg{width:20px;height:20px}
+.icon-btn .ic{width:24px;height:24px}
 :focus-visible{outline:2px solid var(--lime);outline-offset:2px}
 
 /* ---------- Onglets / puces ---------- */
@@ -124,6 +130,7 @@ p{margin:.4em 0}
 .cond{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
 .cond .bar{width:44px}
 .flag{font-size:15px;line-height:1}
+.fl{font-size:15px}
 .crest{width:28px;height:34px;flex:none;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
 .crest.lg{width:54px;height:64px}.crest.xl{width:84px;height:100px}.crest.sm{width:20px;height:24px}
 
@@ -254,13 +261,16 @@ input[type=range]{width:100%;accent-color:var(--lime)}
 .msgbody{white-space:pre-line;line-height:1.55}
 .trophy{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
 .trophy svg{width:26px;height:26px;color:var(--gold);flex:none}
+.trophy .ic{width:30px;height:30px}
 .bigrank{font-family:var(--cond);font-weight:700;font-size:46px;line-height:1;color:var(--lime)}
 .footer-note{color:var(--dim);font-size:12px;text-align:center;margin:24px 0 6px}
 
 .only-d{display:none}
 @media(min-width:820px){.only-d{display:block}.only-m{display:none}}
 .li svg,.kpi svg,.chip svg,.note svg{width:20px;height:20px;flex:none}
+.li .ic,.kpi .ic,.note .ic{width:22px;height:22px}
 .chip svg{width:13px;height:13px}
+.chip .ic{width:16px;height:16px;vertical-align:-3px}
 .li>svg{color:var(--gold)}
 
 /* ---------- Interface façon jeu de gestion ---------- */
@@ -291,3 +301,5 @@ input[type=range]{width:100%;accent-color:var(--lime)}
 }
 .tbl tr.zone-b td:first-child{box-shadow:inset 3px 0 0 var(--orange)}
 .chip.orange{color:var(--orange)}
+
+h3 .ic,h2 .ic{width:1.25em;height:1.25em;margin-right:7px;vertical-align:-.28em}
