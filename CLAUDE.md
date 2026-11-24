@@ -19,6 +19,8 @@ Jeu de manager de foot en JavaScript pur (sans framework), en français. L'utili
 - Version Roblox en construction (personnages Roblox sur un terrain 3D, même jeu que le site). Voir `roblox/README.md`.
 - Studio est relié à Claude par le serveur MCP de Roblox Studio (outils `Roblox_Studio__*` passant par l'ordinateur de l'utilisateur). On construit et on teste directement dans sa place avec `execute_luau`, `screen_capture` et `start_stop_play`, puis on garde le code ici. Toujours arrêter le test de jeu à la fin.
 - `roblox/stade/Stade.luau` : le stade (1 m = 3 studs, repère `Stade.Centre`).
+- Match amical 3D : `dist/roblox/monde.json` (généré par `build.mjs` via `roblox/outils/monde.mjs` : noms modifiés, looks R6), API `/api/match` (`netlify/functions/match`, moteur du site). Code Roblox dans `roblox/src/`, interface dans StarterGui (`roblox/interface/`) : l'utilisateur veut les interfaces dans StarterGui, pas créées par script. Vérifier avec `node tests/roblox.mjs`.
+- Le contexte Edit de l'assistant Studio ne peut pas faire de requêtes HTTP vers le site : écrire le code avec `execute_luau` (propriété `Source`), puis l'exporter avec `roblox/outils/exporter.luau` (réponse enregistrée dans un fichier) et le ranger dans le dépôt.
 - Ne sauvegarder la place (`save_place`) que si l'utilisateur le demande ; sinon, lui rappeler Ctrl+S.
 
 ## Règles
