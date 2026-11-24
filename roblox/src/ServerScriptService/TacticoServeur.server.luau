@@ -383,10 +383,61 @@ local function traiterCarriere(player, req)
 	return res
 end
 
+-- Portrait d'un joueur pour sa fiche : son personnage R6 (coupe, barbe, teint, maillot du club),
+-- construit ici puis rangé dans le PlayerGui du joueur Roblox (lui seul le reçoit)
+local dernierPortrait = {}
+local function hexa(x, defaut)
+	return if typeof(x) == "string" and string.match(x, "^#%x%x%x%x%x%x$") then x else defaut
+end
+local function portrait(player, req)
+	local t = os.clock()
+	if dernierPortrait[player] and t - dernierPortrait[player] < 0.2 then
+		return { error = "Too fast." }
+	end
+	dernierPortrait[player] = t
+	local l = if typeof(req.look) == "table" then req.look else {}
+	local coupe = if typeof(l.coupe) == "string" and Apparence.COUPES[l.coupe] then l.coupe else "brunCourt"
+	local barbe = if typeof(l.barbe) == "string" and Apparence.BARBES[l.barbe] then l.barbe else ""
+	local peau = math.clamp(math.floor(tonumber(l.peau) or 3), 1, 6)
+	local k = if typeof(req.kit) == "table" then req.kit else {}
+	local m, s, n = hexa(k.m, "#3a4a42"), hexa(k.s, "#2b3a33"), hexa(k.n, "#ffffff")
+	local cle = table.concat({ coupe, barbe, tostring(peau), m, s, n }, "_")
+	local pg = player:FindFirstChildOfClass("PlayerGui")
+	if not pg then
+		return { error = "No interface." }
+	end
+	local dossier = pg:FindFirstChild("TacticoPortraits")
+	if not dossier then
+		dossier = Instance.new("Folder")
+		dossier.Name = "TacticoPortraits"
+		dossier.Parent = pg
+	end
+	if not dossier:FindFirstChild(cle) then
+		if #dossier:GetChildren() >= 40 then
+			dossier:ClearAllChildren()
+		end
+		local mdl = Apparence.creerJoueur({ coupe = coupe, barbe = barbe, peau = peau }, {
+			maillot = Color3.fromHex(m), short = Color3.fromHex(s), numero = Color3.fromHex(n),
+		}, "", "")
+		mdl.Name = cle
+		for _, d in mdl:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = true
+			end
+		end
+		mdl.Parent = dossier
+	end
+	return { portrait = cle }
+end
+
 local occupes = {}
 Remotes:WaitForChild("Carriere").OnServerInvoke = function(player, req)
 	if typeof(req) ~= "table" or typeof(req.a) ~= "string" then
 		return { error = "Invalid request." }
+	end
+	if req.a == "portrait" then
+		local ok, res = pcall(portrait, player, req)
+		return if ok then res else { error = "Portrait unavailable." }
 	end
 	if occupes[player] then
 		return { error = "Please wait, an action is already in progress." }
@@ -403,6 +454,7 @@ end
 
 Players.PlayerRemoving:Connect(function(p)
 	dernier[p] = nil
+	dernierPortrait[p] = nil
 	jetons[p.UserId] = nil
 	occupes[p] = nil
 	local d = Acteurs:FindFirstChild(tostring(p.UserId))
@@ -466,6 +518,16 @@ local function creerBallonLibre()
 		local force = math.clamp(22 + course * 1.8, 22, 75)
 		phys.AssemblyLinearVelocity = dir.Unit * force + Vector3.new(0, force * 0.3, 0)
 		phys.AssemblyAngularVelocity = dir.Unit:Cross(Vector3.yAxis) * -force / 1.1
+	end)
+
+	-- il ralentit en roulant sur la pelouse
+	game:GetService("RunService").Heartbeat:Connect(function(dt)
+		if phys.Parent and phys.Position.Y < 3.6 then
+			local v = phys.AssemblyLinearVelocity
+			local f = math.exp(-0.55 * dt)
+			phys.AssemblyLinearVelocity = Vector3.new(v.X * f, v.Y, v.Z * f)
+			phys.AssemblyAngularVelocity *= f
+		end
 	end)
 
 	-- remis au centre s'il sort du stade ou tombe

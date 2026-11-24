@@ -336,9 +336,20 @@ local function fermerModale()
 	end
 	connexionsModale = {}
 end
+local jetonPortrait = 0
 local function ouvrirModale(t, sous)
 	fermerModale()
 	modale.Visible = true
+	jetonPortrait += 1
+	local cadre = corps:FindFirstChild("Portrait")
+	if cadre then
+		cadre.Visible = false
+		for _, c in cadre:GetChildren() do
+			if c:IsA("WorldModel") or c:IsA("Camera") then
+				c:Destroy()
+			end
+		end
+	end
 	local b = modale.Boite
 	b.Titre.Text = t or ""
 	b.Titre.TextColor3 = C.ink
@@ -851,10 +862,18 @@ PAGES.competitions = function(d)
 	p.Entete.Textes.Sous.Text = d.sous or ""
 	marquer(p.Onglets, d.o)
 	marquer(p.Pays, d.pays)
+	local presents = {}
 	for _, l in d.ligues or {} do
+		presents[l.code] = true
 		if l.code == d.pays then
 			p.Divisions["1"].Text = l.d1
 			p.Divisions["2"].Text = l.d2
+		end
+	end
+	-- onglets des seuls pays de cette carrière
+	for _, b in p.Pays:GetChildren() do
+		if b:IsA("GuiButton") then
+			b.Visible = presents[b:GetAttribute("Cle") or b.Name] == true
 		end
 	end
 	marquer(p.Divisions, d.div)
@@ -1255,6 +1274,42 @@ PAGES.options = function(d)
 end
 
 -- ---------- Fiche d'un joueur ----------
+-- Portrait : la tête de son personnage R6, préparée par le serveur (coupe, barbe, teint, maillot)
+local function montrerPortrait(look, kit)
+	local cadre = corps:FindFirstChild("Portrait")
+	if not cadre or type(look) ~= "table" then
+		return
+	end
+	local j = jetonPortrait
+	cadre.Visible = true
+	task.spawn(function()
+		local ok, res = pcall(function()
+			return Remotes.Carriere:InvokeServer({ a = "portrait", look = look, kit = kit })
+		end)
+		if j ~= jetonPortrait or not ok or type(res) ~= "table" or not res.portrait then
+			return
+		end
+		local dossier = joueur:WaitForChild("PlayerGui"):WaitForChild("TacticoPortraits", 5)
+		local mdl = dossier and dossier:WaitForChild(res.portrait, 5)
+		if not mdl or j ~= jetonPortrait then
+			return
+		end
+		local copie = mdl:Clone()
+		local monde = Instance.new("WorldModel")
+		copie.Parent = monde
+		local cam = Instance.new("Camera")
+		cam.FieldOfView = 26
+		local tete = copie:FindFirstChild("Head")
+		if tete then
+			local p = tete.Position
+			cam.CFrame = CFrame.lookAt(p + tete.CFrame.LookVector * 5 + Vector3.new(0, 0.25, 0), p + Vector3.new(0, -0.45, 0))
+		end
+		cam.Parent = cadre
+		cadre.CurrentCamera = cam
+		monde.Parent = cadre
+	end)
+end
+
 ouvrirFiche = function(id, d)
 	if not d then
 		local res = appeler({ a = "vue", e = "joueur", q = { id = id } })
@@ -1275,6 +1330,7 @@ ouvrirFiche = function(id, d)
 		texteModale(d.vide, C.mute)
 		return
 	end
+	montrerPortrait(d.look, d.kit)
 	local lignes = {}
 	if (d.statut or "") ~= "" then
 		table.insert(lignes, d.statut)

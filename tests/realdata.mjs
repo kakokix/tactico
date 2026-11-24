@@ -2,7 +2,7 @@
 import { REAL_DATA, REAL_COUNTRIES, parseClub } from '../src/data/real/index.js';
 import { NATIONS } from '../src/data/names.js';
 import { POS } from '../src/core/constants.js';
-const want = { FR: [18, 18], EN: [20, 24], ES: [20, 22], IT: [20, 20], DE: [18, 18] };
+const want = { FR: [18, 18], EN: [20, 24], ES: [20, 22], IT: [20, 20], DE: [18, 18], PT: [18, 16], NL: [18, 14], BE: [18, 8], TR: [18, 18], SCO: [12, 10] };
 let bad = 0, nPlayers = 0;
 for (const C of REAL_COUNTRIES) {
   const d = REAL_DATA[C.code];

@@ -3,6 +3,9 @@ import { G, ui, register, render, go, openModal, closeModal, modalHead, toast, p
 import { ICON, esc, crest, flag, money, ovrB, posB, stars, rtB, natName } from './util.js';
 import { NATIONS } from '../data/names.js';
 import { LEAGUE_COUNTRIES, GAME_NAME } from '../core/constants.js';
+import { REAL_COUNTRIES, REAL_DATA } from '../data/real/index.js';
+
+const N_CLUBS = Object.values(REAL_DATA).reduce((n, d) => n + d.d1.length + d.d2.length, 0);
 import { generateWorld, generateRealWorld } from '../core/worldgen.js';
 import { startCareer, nextUserMatch, userMatchToday } from '../core/game.js';
 import { leagueTable, positionOf, compName, matchWinner } from '../core/competitions.js';
@@ -43,7 +46,7 @@ function titleScreen() {
     ${meta ? `<button class="btn pri block" data-a="loadCareer" style="min-height:56px;font-size:16px">${ICON.play} Continuer : ${esc(meta.mgr)} · ${esc(meta.club || 'sans club')} · ${meta.season}-${(meta.season + 1) % 100}</button>` : ''}
     <button class="btn ${meta ? '' : 'pri'} block" data-a="newCareer" style="min-height:52px">${ICON.plus} Nouvelle carrière</button>
     <div class="grid2"><button class="btn block" data-a="importOpen">${ICON.save} Importer une sauvegarde</button><button class="btn block" data-a="titleBoard">${ICON.world} Classement mondial</button></div>
-    <p class="dim small center">5 pays · 10 championnats · 198 vrais clubs 2026-27 (ou monde fictif)</p>
+    <p class="dim small center">${REAL_COUNTRIES.length} pays · ${REAL_COUNTRIES.length * 2} championnats · ${N_CLUBS} vrais clubs 2026-27 (ou monde fictif)</p>
     <p class="dim small center disclaimer">Jeu non officiel, sans lien avec les clubs, les ligues ou les joueurs cités. Aucun logo officiel n'est utilisé.</p>
   </div></div>`;
 }

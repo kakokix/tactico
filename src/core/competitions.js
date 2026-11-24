@@ -80,13 +80,15 @@ function applyRow(row, gf, ga) {
 
 // ---------- Coupes nationales ----------
 export function scheduleCup(state, cup) {
-  const d1 = state.comps[cup.country + '1'].clubs, d2 = state.comps[cup.country + '2'].clubs;
+  const d1 = state.comps[cup.country + '1'].clubs, d2 = state.comps[cup.country + '2']?.clubs || [];
   cup.clubs = [...d1, ...d2];
-  // Tour préliminaire : les plus faibles jouent pour ramener le tableau à 32 clubs
-  const nPre = Math.max(1, cup.clubs.length - 32);
-  const weakest = d2.slice().sort((a, b) => state.clubs[a].rep - state.clubs[b].rep).slice(0, Math.min(d2.length, nPre * 2));
+  // Tour préliminaire : les plus faibles jouent pour ramener le tableau à 32 clubs (16 dans les petits pays, sans 16es)
+  const size = cup.clubs.length > 32 ? 32 : 16;
+  const nPre = Math.max(1, cup.clubs.length - size);
+  const byRep = (ids) => ids.slice().sort((a, b) => state.clubs[a].rep - state.clubs[b].rep);
+  const weakest = [...byRep(d2), ...byRep(d1)].slice(0, Math.min(cup.clubs.length, nPre * 2));
   cup.byes = cup.clubs.filter((c) => !weakest.includes(c));
-  cup.stages = state.sd.cup.map((s) => ({ ...s, mids: [] }));
+  cup.stages = state.sd.cup.filter((s) => size === 32 || s.key !== 'r32').map((s) => ({ ...s, mids: [] }));
   cup.stage = 0;
   cup.winner = null;
   cup.out = {};
@@ -229,7 +231,7 @@ export function contiQualifiers(state, byRep = false) {
     let order;
     if (byRep) order = comp.clubs.slice().sort((a, b) => state.clubs[b].rep - state.clubs[a].rep).map((c) => ({ c, pts: state.clubs[c].rep, gd: 0 }));
     else order = leagueTable(state, comp).map((r) => ({ c: r.c, pts: r.pts * 34 / Math.max(1, r.p), gd: r.gf - r.ga }));
-    const n = C.conti || 3;
+    const n = C.conti ?? 3;
     for (let i = 0; i < n; i++) q.push(order[i].c);
     next.push(...order.slice(n, n + 2));
   }

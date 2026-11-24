@@ -16,7 +16,7 @@ export function computeObjective(state, club) {
   const r = ranked.indexOf(club.id) + 1;
   const safe = n - (C.down || 3) - (C.po === 'barrage' ? 1 : 0);
   if (comp.level === 1) {
-    const eu = C.conti || 3;
+    const eu = C.conti ?? 3;
     if (r <= 1) return { key: 'title', label: L('Remporter le championnat', 'Win the league'), target: 1 };
     if (r <= eu) return { key: 'podium', label: L(`Finir dans le top ${eu} (qualification européenne)`, `Finish in the top ${eu} (European qualification)`), target: eu };
     const t6 = Math.round(n / 3);

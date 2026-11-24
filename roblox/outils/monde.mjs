@@ -8,6 +8,8 @@ import { REAL_COUNTRIES, REAL_CONTI } from '../../src/data/real/index.js';
 import { SOSIES } from './sosies.mjs';
 
 export const GRAINE = 2026;
+// pays des carrières Roblox créées avant les nouveaux championnats (pour retrouver les vrais noms)
+const PAYS_DEPART = ['FR', 'EN', 'ES', 'IT', 'DE'];
 export const VERSION_MONDE = 1;
 
 // ---------- Noms modifiés (façon anciens jeux sans licence) ----------
@@ -185,7 +187,7 @@ export function adapterPourSite(state) {
       p.ln = p.ln0;
       if (p.fn0 !== undefined) p.fn = p.fn0;
     } else {
-      depart = depart || generateRealWorld(GRAINE);
+      depart = depart || generateRealWorld(GRAINE, PAYS_DEPART);
       const o = depart.players[p.id];
       if (o && o.real) { p.ln = o.ln; p.fn = o.fn; }
     }
@@ -205,7 +207,7 @@ export function construireMonde(graine = GRAINE) {
 
 // Données compactes pour Roblox
 // Noms des pays en anglais (le jeu Roblox est en anglais)
-const PAYS_EN = { FR: 'France', EN: 'England', ES: 'Spain', IT: 'Italy', DE: 'Germany' };
+const PAYS_EN = { FR: 'France', EN: 'England', ES: 'Spain', IT: 'Italy', DE: 'Germany', PT: 'Portugal', NL: 'Netherlands', BE: 'Belgium', TR: 'Turkey', SCO: 'Scotland' };
 export function exporterMonde(state) {
   const clubs = [];
   for (const C of REAL_COUNTRIES) {

@@ -264,12 +264,13 @@ function genRealSquad(state, club, d) {
   assignNumbers(state, club);
 }
 
-export function generateRealWorld(seed) {
+// codes : pays à créer (tous par défaut ; les cinq premiers redonnent exactement le monde d'avant les nouveaux championnats)
+export function generateRealWorld(seed, codes = null) {
   R.seed(seed);
   const Y = 2026;
   const state = baseState(seed, Y);
   state.mode = 'real';
-  state.countries = REAL_COUNTRIES.map((c) => ({ ...c }));
+  state.countries = REAL_COUNTRIES.filter((c) => !codes || codes.includes(c.code)).map((c) => ({ ...c }));
   state.contiName = L(REAL_CONTI, 'European Cup');
   applyWorld(state);
   const data = new Map();

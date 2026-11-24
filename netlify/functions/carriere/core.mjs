@@ -234,12 +234,14 @@ VUES.calendrier = (S, q = {}) => {
 
 VUES.competitions = (S, q = {}) => {
   const club = S.user ? S.clubs[S.user] : null;
-  const pays = REAL_COUNTRIES.some((c) => c.code === q.pays) ? q.pays : club?.country || 'FR';
+  // pays de cette carrière (les carrières d'avant les nouveaux championnats n'en ont que cinq)
+  const PAYS = S.countries || REAL_COUNTRIES;
+  const pays = PAYS.some((c) => c.code === q.pays) ? q.pays : club?.country || 'FR';
   const div = q.div === 1 || q.div === 2 ? q.div : (club && club.country === pays ? S.comps[club.league].level : 1);
   const onglet = q.o || 'table';
-  const C = REAL_COUNTRIES.find((c) => c.code === pays) || REAL_COUNTRIES[0];
+  const C = PAYS.find((c) => c.code === pays) || PAYS[0];
   const comp = S.comps[pays + div];
-  const out = { o: onglet, pays, div, sous: `Season ${saison(S)}`, ligues: REAL_COUNTRIES.map((c) => ({ code: c.code, nom: paysL(c.name), d1: c.d1, d2: c.d2 })) };
+  const out = { o: onglet, pays, div, sous: `Season ${saison(S)}`, ligues: PAYS.map((c) => ({ code: c.code, nom: paysL(c.name), d1: c.d1, d2: c.d2 })) };
   if (onglet === 'table' && comp) {
     const rows = leagueTable(S, comp);
     const n = rows.length;

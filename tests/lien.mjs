@@ -13,6 +13,7 @@ import { generateRealWorld, generateWorld } from '../src/core/worldgen.js';
 import { startCareer, continueGame } from '../src/core/game.js';
 import { serialize, deserialize } from '../src/core/save.js';
 import { REAL_CONTI } from '../src/data/real/index.js';
+import { adapterPourRoblox } from '../roblox/outils/monde.mjs';
 
 const dir = mkdtempSync(join(tmpdir(), 'blobs-'));
 const server = new BlobsServer({ directory: dir, token: 'tok', port: 0 });
@@ -49,7 +50,8 @@ if (R1.day !== S0.day) err('la date de la carrière doit être gardée');
 const proteges = JSON.stringify(Object.values(R1.clubs).map((c) => [c.name, c.short, c.city, c.stadium?.name]));
 const textesR1 = JSON.stringify([imp, R1.inbox, R1.news, R1.transfers]);
 // (noms complets : un nom de famille seul peut être le prénom d'un autre joueur ou un nom généré)
-const fuites = [...new Set([...vrais.values()].map(([fn, ln]) => (fn ? fn + ' ' + ln : ln)))].filter((n) => n.length > 3 && !proteges.includes(n) && new RegExp(`(?<![\\p{L}])${n}(?![\\p{L}])`, 'u').test(textesR1));
+// (les noms d'usage seuls, comme « Wesley », sont aussi des prénoms de joueurs générés : on ne vérifie que les noms complets)
+const fuites = [...new Set([...vrais.values()].filter(([fn]) => fn).map(([fn, ln]) => fn + ' ' + ln))].filter((n) => !proteges.includes(n) && new RegExp(`(?<![\\p{L}])${n}(?![\\p{L}])`, 'u').test(textesR1));
 if (fuites.length) err('vrais noms dans Roblox : ' + fuites.slice(0, 5).join(', '));
 console.log('messages repris dans Roblox :', R1.inbox.length, '· ex. :', R1.inbox.find((m) => m.kind === 'bid')?.title || R1.inbox[0]?.title);
 const deja = await traiter({ a: 'importer', code: dep.code, nom: 'X' }, store, null, null);
@@ -87,15 +89,18 @@ if (restes.length) err('noms modifiés restés dans les messages du site : ' + r
 console.log('messages rendus au site :', S2.inbox.find((m) => m.kind === 'bid')?.title || S2.inbox[0]?.title);
 
 // 5. Carrière Roblox d'avant la liaison (sans vrais noms gardés à part) : noms retrouvés dans le monde de départ
-const nv = await traiter({ a: 'nouvelle', nom: 'Ancien', club: cid }, store, null, null);
-const R3 = await etat(nv.t);
+// (créée comme avant les nouveaux championnats : monde à cinq pays, noms modifiés sans les vrais noms à part)
+const PAYS5 = ['FR', 'EN', 'ES', 'IT', 'DE'];
+const R3 = adapterPourRoblox(generateRealWorld(2026, PAYS5));
 for (const p of Object.values(R3.players)) { delete p.ln0; delete p.fn0; }
 delete R3.roblox;
+startCareer(R3, { name: 'Ancien', nat: 'FR', clubId: Object.values(R3.clubs).find((c) => c.name === 'Olympique Lyonnais').id });
+const t3 = 'a'.repeat(32);
 const gz = gzipSync(Buffer.from(serialize(R3), 'utf8'));
-await store.set('c/' + nv.t, gz.buffer.slice(gz.byteOffset, gz.byteOffset + gz.byteLength));
-const exp3 = await traiter({ a: 'exporter', t: nv.t }, store, null, null);
+await store.set('c/' + t3, gz.buffer.slice(gz.byteOffset, gz.byteOffset + gz.byteLength));
+const exp3 = await traiter({ a: 'exporter', t: t3 }, store, null, null);
 const S3 = lireTexte((await traiterSite({ a: 'recuperer', code: exp3.code }, store)).etat);
-const base = generateRealWorld(2026);
+const base = generateRealWorld(2026, PAYS5);
 let faux3 = 0;
 for (const p of Object.values(S3.players)) if (p.real && base.players[p.id] && base.players[p.id].ln !== p.ln) faux3++;
 console.log('ancienne carrière Roblox :', faux3, 'nom(s) faux');

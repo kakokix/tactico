@@ -8,7 +8,7 @@ export const L = (fr, en) => (LANG === 'en' ? en : fr);
 const POS_EN = { GB: 'GK', DD: 'RB', DC: 'CB', DG: 'LB', MDC: 'DM', MD: 'RM', MC: 'CM', MG: 'LM', MOC: 'AM', AD: 'RW', AG: 'LW', BU: 'ST' };
 export const posL = (p) => (LANG === 'en' ? POS_EN[p] || p : p);
 
-const PAYS_EN = { Angleterre: 'England', Espagne: 'Spain', Italie: 'Italy', Allemagne: 'Germany' };
+const PAYS_EN = { Angleterre: 'England', Espagne: 'Spain', Italie: 'Italy', Allemagne: 'Germany', 'Pays-Bas': 'Netherlands', Belgique: 'Belgium', Turquie: 'Turkey', Écosse: 'Scotland' };
 export const paysL = (n) => (LANG === 'en' ? PAYS_EN[n] || n : n);
 
 // 1er / 1st, 2e / 2nd…

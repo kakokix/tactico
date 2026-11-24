@@ -111,6 +111,7 @@ const EXTRA = {
   MX: ['Mexique', '🇲🇽', ES_F, AR_L], JM: ['Jamaïque', '🇯🇲', EN_F, EN_L], HN: ['Honduras', '🇭🇳', ES_F, AR_L],
   PA: ['Panama', '🇵🇦', ES_F, CO_L], PY: ['Paraguay', '🇵🇾', AR_F, AR_L], VE: ['Venezuela', '🇻🇪', ES_F, CO_L],
   CL: ['Chili', '🇨🇱', AR_F, AR_L], ZA: ['Afrique du Sud', '🇿🇦', NG_F, NG_L], TG: ['Togo', '🇹🇬', AF_F, CI_L],
+  LU: ['Luxembourg', '🇱🇺', FR_F, DE_L], CR: ['Costa Rica', '🇨🇷', ES_F, CO_L], SR: ['Suriname', '🇸🇷', NL_F, NL_L], TD: ['Tchad', '🇹🇩', AF_F, CM_L],
 };
 export const CORE_NATIONS = Object.keys(NATIONS);
 for (const [k, [name, flag, f, l]] of Object.entries(EXTRA)) NATIONS[k] = { name, flag, f, l };
@@ -123,4 +124,9 @@ export const FOREIGN_MIX = {
   ES: { AR: 6, BR: 5, UY: 4, CO: 3, PT: 4, FR: 4, MA: 4, DZ: 1, IT: 1, DE: 1, NL: 2, BE: 1, SN: 2, CI: 1, NG: 2, GH: 2, HR: 1, RS: 1, JP: 2, KR: 1, US: 1, EN: 1, TR: 1, CM: 1 },
   IT: { AR: 4, BR: 5, FR: 4, ES: 2, PT: 2, NL: 3, BE: 3, DE: 2, HR: 4, RS: 4, PL: 4, DK: 3, SE: 2, NO: 2, CH: 3, SN: 2, CI: 2, NG: 2, GH: 2, MA: 2, DZ: 1, TR: 2, UY: 2, CO: 2, US: 2, JP: 1, KR: 1, EN: 1 },
   DE: { FR: 4, CH: 5, NL: 4, BE: 3, DK: 4, SE: 2, NO: 2, PL: 3, HR: 3, RS: 2, TR: 5, US: 3, JP: 4, KR: 3, BR: 2, PT: 2, ES: 2, IT: 1, CI: 2, SN: 1, GH: 2, NG: 2, CM: 2, MA: 2, EN: 2, AR: 1, CO: 1 },
+  PT: { BR: 9, AR: 3, UY: 2, CO: 2, ES: 3, FR: 2, CV: 2, AO: 1, SN: 1, CI: 1, NG: 1, GH: 1, MA: 1, NL: 1, BE: 1, DK: 1, SE: 1, US: 1, JP: 2, GR: 1, UA: 1 },
+  NL: { BE: 4, DE: 3, DK: 3, SE: 2, NO: 2, MA: 3, BR: 2, JP: 2, US: 2, GH: 2, NG: 2, CI: 1, SN: 1, PT: 1, ES: 1, FR: 2, EN: 2, CH: 1, HR: 1, PL: 1, TR: 1, IS: 1, GR: 1 },
+  BE: { FR: 5, NL: 5, DK: 2, SE: 2, NO: 2, MA: 3, CI: 3, SN: 3, CM: 2, NG: 2, GH: 2, ML: 2, CD: 2, JP: 3, BR: 2, ES: 1, PT: 1, HR: 1, RS: 1, CH: 1, DZ: 1, IS: 1 },
+  TR: { BR: 4, PT: 3, FR: 3, NG: 3, SN: 3, CI: 2, CM: 2, GH: 2, MA: 2, DZ: 1, HR: 2, RS: 2, PL: 2, NL: 2, BE: 2, DE: 3, ES: 2, AR: 2, CO: 2, US: 1, JP: 1, KR: 1, GR: 1, BA: 1, AL: 1, XK: 1 },
+  SCO: { EN: 8, IE: 3, NIR: 2, WAL: 1, US: 2, AU: 2, CA: 1, NO: 2, SE: 2, DK: 2, JP: 3, KR: 1, NL: 2, BE: 1, FR: 1, NG: 1, GH: 1, PL: 1, IS: 1 },
 };
