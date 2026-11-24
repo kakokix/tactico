@@ -24,19 +24,19 @@ export function nextWeekday(day, wd) {
   return day + ((wd - cur + 7) % 7);
 }
 
-export function seasonDates(Y) {
+// Calendrier d'une saison. maxRounds = nombre de journées du plus grand championnat (34 à 46).
+export function seasonDates(Y, maxRounds = 34) {
   const start = dayOf(Y, 7, 1);
   const secondSat = (y, m) => nextWeekday(dayOf(y, m, 1), 6) + 7;
   const skip = new Set([secondSat(Y, 9), secondSat(Y, 10), secondSat(Y, 11), secondSat(Y + 1, 3)]);
   const wA = dayOf(Y, 12, 22), wB = dayOf(Y + 1, 1, 6);
-  const league = [];
-  let d = nextWeekday(dayOf(Y, 8, 8), 6);
-  while (league.length < 34) {
-    if (!skip.has(d) && !(d >= wA && d <= wB)) league.push(d);
-    d += 7;
-  }
-  const last = league[league.length - 1];
   const W = (y, m, dd, wd) => nextWeekday(dayOf(y, m, dd), wd);
+  // Samedis disponibles (hors trêves internationales et hivernale)
+  const sat = [];
+  const lastSat = W(Y + 1, 5, 22, 6);
+  for (let d = nextWeekday(dayOf(Y, 8, 8), 6); d <= lastSat; d += 7) if (!skip.has(d) && !(d >= wA && d <= wB)) sat.push(d);
+  const league = sat.slice(0, 34);
+  const last = sat[Math.min(maxRounds, sat.length) - 1];
   const cup = [
     { key: 'prelim', label: 'Tour préliminaire', day: W(Y, 9, 23, 3) },
     { key: 'r32', label: '16es de finale', day: W(Y, 10, 28, 3) },
@@ -53,11 +53,26 @@ export function seasonDates(Y) {
       { key: 'f', label: 'Finale', day: last + 14 },
     ],
   };
+  // Mercredis libres pour les journées en semaine (pas de coupe, pas au lendemain d'un match européen)
+  const busy = new Set([...cup.map((c) => c.day), ...conti.groups.map((d) => d + 1), ...conti.ko.map((k) => k.day + 1)]);
+  const mid = [];
+  for (let d = W(Y, 8, 19, 3); d <= W(Y + 1, 5, 12, 3); d += 7) if (!busy.has(d) && !(d >= wA && d <= wB) && !skip.has(d - 4)) mid.push(d);
   return {
-    start, league, cup, conti, end: last + 15,
+    start, league, sat, mid, cup, conti, end: last + 15,
     summerClose: dayOf(Y, 8, 31), winterOpen: dayOf(Y + 1, 1, 1), winterClose: dayOf(Y + 1, 1, 31),
     youthDay: dayOf(Y + 1, 3, 15),
   };
+}
+
+// Dates des n journées d'un championnat : samedis, puis mercredis répartis si besoin
+export function leagueDays(sd, n) {
+  const sat = sd.sat || sd.league;
+  if (n <= sat.length) return sat.slice(0, n);
+  const extra = n - sat.length;
+  const mid = sd.mid || [];
+  const picks = [];
+  for (let i = 0; i < extra; i++) picks.push(mid[Math.min(mid.length - 1, Math.floor((i + 0.5) * mid.length / extra))]);
+  return [...sat, ...new Set(picks)].sort((a, b) => a - b).slice(0, n);
 }
 
 export function windowOpen(state) {

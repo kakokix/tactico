@@ -108,11 +108,22 @@ export function createPlayer(state, { nat, pos, ovr, age, pot, club = null }) {
   return p;
 }
 
+// Joueur réel : nom, poste et note imposés, attributs générés autour de la note
+export function createRealPlayer(state, r, clubId) {
+  const p = createPlayer(state, { nat: r.nat, pos: r.pos, ovr: r.ovr, age: r.age, pot: r.pot, club: clubId });
+  p.fn = r.fn; p.ln = r.ln;
+  if (r.alt && r.alt.length) p.alt = r.alt.slice(0, 2);
+  if (p.pos === 'DG' || p.pos === 'MG') p.foot = R.chance(0.85) ? 'G' : 'D';
+  if (p.pos === 'DD' || p.pos === 'MD') p.foot = R.chance(0.9) ? 'D' : 'G';
+  p.real = 1;
+  return p;
+}
+
 export function newSeasonStats() {
   return { apps: 0, gls: 0, ast: 0, rat: 0, min: 0, cs: 0, yc: 0, rc: 0, motm: 0 };
 }
 
-export const pname = (p) => (p ? p.fn + ' ' + p.ln : '—');
+export const pname = (p) => (p ? (p.fn ? p.fn + ' ' : '') + p.ln : '—');
 export const pshort = (p) => (p ? (p.fn ? p.fn[0] + '. ' : '') + p.ln : '—');
 
 function niceRound(v) {

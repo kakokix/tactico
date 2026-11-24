@@ -1,11 +1,12 @@
-import { generateWorld } from '../src/core/worldgen.js';
+import { generateWorld, generateRealWorld } from '../src/core/worldgen.js';
+import { avgRating } from '../src/core/player.js';
 import { MatchSim } from '../src/core/match.js';
 import { autoLineup, aiTactics } from '../src/core/team.js';
 import { recordResult, leagueTable } from '../src/core/competitions.js';
 import { R } from '../src/core/rng.js';
 
 const t0 = Date.now();
-const S = generateWorld(12345);
+const S = (process.argv[2] === 'fictif' ? generateWorld : generateRealWorld)(12345);
 console.log('world gen ms', Date.now() - t0, 'players', Object.keys(S.players).length, 'clubs', Object.keys(S.clubs).length, 'matches', Object.keys(S.matches).length);
 // distribution of club strengths
 for (const id of ['EN1','EN2','FR1','FR2']) {
@@ -34,7 +35,18 @@ console.log('sim ms', Date.now()-t1, 'matches', n);
 const f = (x) => (x/n).toFixed(2);
 console.log(`goals/m ${f(goals)} home ${(hw/n*100).toFixed(0)}% draw ${(dr/n*100).toFixed(0)}% away ${(aw/n*100).toFixed(0)}%`);
 console.log(`shots ${f(shots)} on ${f(on)} xg ${f(xg)} corners ${f(cor)} fouls ${f(fo)} yc ${f(yc)} rc ${f(rc)} pens ${f(pens)} inj ${f(inj)} off ${f(off)}`);
-for (const id of ['EN1','FR1','EN2']) {
+for (const id of ['EN1','FR1','ES1','EN2']) {
   const t = leagueTable(S, S.comps[id]);
-  console.log(id, t.slice(0,3).map(r => `${S.clubs[r.c].name}(${S.clubs[r.c].str}) ${r.pts}`).join(' | '), ' ... last:', t.slice(-2).map(r => `${S.clubs[r.c].name}(${S.clubs[r.c].str}) ${r.pts}`).join(' | '));
+  console.log(id, t.slice(0,3).map(r => `${S.clubs[r.c].short}(${S.clubs[r.c].str.toFixed(0)}) ${r.pts}`).join(' | '), ' ... last:', t.slice(-2).map(r => `${S.clubs[r.c].short}(${S.clubs[r.c].str.toFixed(0)}) ${r.pts}`).join(' | '));
 }
+
+// Notes moyennes et buteurs
+const ps = Object.values(S.players).filter(p => p.st.apps > 0);
+const rats = ps.map(p => avgRating(p));
+console.log('note moyenne', (rats.reduce((a,b)=>a+b,0)/rats.length).toFixed(2), '| min', Math.min(...rats).toFixed(2), 'max', Math.max(...rats).toFixed(2));
+const sc = ps.slice().sort((a,b)=>b.st.gls-a.st.gls).slice(0,8);
+console.log('buteurs', sc.map(p=>`${p.ln} ${p.st.gls}`).join(', '));
+const gkr = ps.filter(p=>p.pos==='GB'); console.log('note moy. gardiens', (gkr.map(avgRating).reduce((a,b)=>a+b,0)/gkr.length).toFixed(2));
+// écarts de buts
+const diffs = {}; for (const m of leagueMatches) { const d = Math.min(5, Math.abs(m.hg - m.ag)); diffs[d] = (diffs[d]||0)+1; }
+console.log('écarts', Object.entries(diffs).map(([k,v])=>`${k}:${(v/n*100).toFixed(0)}%`).join(' '));

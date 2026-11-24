@@ -185,6 +185,9 @@ export function aiTransferDay(state, notify) {
   if (!windowOpen(state)) return;
   const clubs = Object.values(state.clubs).filter((c) => c.id !== state.user);
   const all = Object.values(state.players);
+  // joueurs rangés par poste : l'IA cherche directement au bon poste
+  const byPos = {};
+  for (const p of all) if (!p.youth && !p.loan) (byPos[p.pos] ||= []).push(p);
   const nBuyers = Math.max(2, Math.round(clubs.length * 0.05));
   for (let k = 0; k < nBuyers; k++) {
     const club = R.pick(clubs);
@@ -195,8 +198,9 @@ export function aiTransferDay(state, notify) {
     const minOvr = Math.max(need.cur + 2, 40);
     const budget = club.tBudget;
     const cands = [];
+    const pool = byPos[need.pos] && byPos[need.pos].length > 20 ? byPos[need.pos] : all;
     for (let i = 0; i < 60; i++) {
-      const p = all[Math.floor(R.f() * all.length)];
+      const p = pool[Math.floor(R.f() * pool.length)];
       if (!p || p.youth || p.loan || p.club === club.id) continue;
       if (p.pos !== need.pos && !(p.alt || []).includes(need.pos)) continue;
       if (p.ovr < minOvr || p.ovr > (club.str || 70) + 9) continue;

@@ -9,6 +9,7 @@ import { pname, pshort, ovrAt } from '../core/player.js';
 import { lineupStrength, clubStrength } from '../core/team.js';
 import { R, clamp } from '../core/rng.js';
 import { submitScore } from './lb.js';
+import { anim } from './anim.js';
 
 // ---------- Avant-match ----------
 function matchScreen() {
@@ -49,14 +50,28 @@ function liveScreen() {
   if (!L) return '<div class="empty">Aucun match en cours.</div>';
   const S = G.S;
   const [H, A] = [L.sim.sides[0].club, L.sim.sides[1].club];
-  return `<div class="main" style="padding-top:max(10px,env(safe-area-inset-top));max-width:980px">
-    <div class="score"><div class="t">${crest(H)}<b>${esc(H.name)}</b></div><div class="s"><span id="lv-score">${L.sim.sides[0].goals} - ${L.sim.sides[1].goals}</span><span class="clk" id="lv-clock">${L.sim.clock()}'</span></div><div class="t a"><b>${esc(A.name)}</b>${crest(A)}</div></div>
+  return `<div class="main" style="padding-top:max(10px,env(safe-area-inset-top));max-width:1040px">
+    <div class="score"><div class="t">${crest(H)}<b>${esc(H.name)}</b></div><div class="s"><span id="lv-score">${shownScore()}</span><span class="clk" id="lv-clock">${L.sim.clock()}'</span></div><div class="t a"><b>${esc(A.name)}</b>${crest(A)}</div></div>
     <div class="statrow" style="margin-top:6px"><b class="num" id="lv-p0">50%</b><div><div class="lbl">Possession</div><div class="dual"><i id="lv-pb0" style="width:50%;background:${barColor(L.colors[0])}"></i><i id="lv-pb1" style="width:50%;background:${barColor(L.colors[1])}"></i></div></div><b class="num right" id="lv-p1">50%</b></div>
-    <div class="canvaswrap"><canvas id="lv-canvas"></canvas><div class="flash" id="lv-flash"></div></div>
+    <div class="canvaswrap"><canvas id="lv-canvas"></canvas><div class="bug" id="lv-bug">${bugHTML()}</div><div class="flash" id="lv-flash"></div></div>
     <div class="ctrl" id="lv-ctrl">${controls()}</div>
     <div class="tabs mt" id="lv-tabs">${[['feed', 'Commentaires'], ['stats', 'Statistiques'], ['rat', 'Notes']].map(([k, l]) => `<button class="tab ${L.tab === k ? 'on' : ''}" data-a="lvTab" data-k="${k}">${l}</button>`).join('')}</div>
     <div class="card" id="lv-panel">${panel()}</div>
   </div>`;
+}
+
+// Score affiché : les buts apparaissent quand le ballon franchit la ligne à l'écran
+function shownScore() {
+  const L = ui.live;
+  const g = L.shown || [L.sim.sides[0].goals, L.sim.sides[1].goals];
+  return `${g[0]} - ${g[1]}${L.sim.pens && L.sim.done ? ` (${L.sim.pens[0]}-${L.sim.pens[1]})` : ''}`;
+}
+function bugHTML() {
+  const L = ui.live;
+  const sim = L.sim;
+  const g = L.shown || [sim.sides[0].goals, sim.sides[1].goals];
+  const tm = (t) => { const c = sim.sides[t].club; const col = L.colors[t]; return `<span class="tm" style="background:${col};color:${inkOn(col)}">${esc(c.abbr || c.short.slice(0, 3).toUpperCase())}</span>`; };
+  return `${tm(0)}<b>${g[0]}-${g[1]}</b>${tm(1)}<i>${sim.done ? 'FIN' : sim.halftime && L.htPause ? 'MT' : sim.clock() + "'"}</i>`;
 }
 
 function controls() {
@@ -88,8 +103,8 @@ function panel() {
 
 function feedLine(e) {
   const L = ui.live;
-  const cls = e.type === 'goal' ? 'goal' : e.type === 'red' ? 'red' : ['ht', 'ft', 'et', 'pen', 'penmiss'].includes(e.type) ? 'big' : '';
-  const ic = e.type === 'goal' ? '⚽ ' : e.type === 'yellow' ? '🟨 ' : e.type === 'red' ? '🟥 ' : e.type === 'sub' ? '🔁 ' : e.type === 'injury' ? '🚑 ' : e.type === 'save' ? '🧤 ' : '';
+  const cls = e.type === 'goal' ? 'goal' : e.type === 'red' || e.type === 'vardis' ? 'red' : ['ht', 'ft', 'et', 'pen', 'penmiss', 'var', 'varok'].includes(e.type) ? 'big' : '';
+  const ic = e.type === 'goal' ? '⚽ ' : e.type === 'yellow' ? '🟨 ' : e.type === 'red' ? '🟥 ' : e.type === 'sub' ? '🔁 ' : e.type === 'injury' ? '🚑 ' : e.type === 'save' ? '🧤 ' : e.type === 'var' || e.type === 'varok' || e.type === 'vardis' ? '📺 ' : '';
   const side = e.t === 0 || e.t === 1 ? `<i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${barColor(L.colors[e.t])};margin-right:6px"></i>` : '';
   return `<div class="fe ${cls}"><span class="m">${e.min}'</span><span>${side}${ic}${esc(e.text || '')}</span></div>`;
 }
@@ -100,7 +115,9 @@ function refreshLive(full = false) {
   const sim = L.sim;
   const $ = (id) => document.getElementById(id);
   if (!$('lv-score')) return;
-  $('lv-score').textContent = `${sim.sides[0].goals} - ${sim.sides[1].goals}${sim.pens ? ` (${sim.pens[0]}-${sim.pens[1]})` : ''}`;
+  if (sim.done) L.shown = null;
+  $('lv-score').textContent = shownScore();
+  if ($('lv-bug')) $('lv-bug').innerHTML = bugHTML();
   $('lv-clock').textContent = sim.done ? 'Terminé' : sim.halftime && L.htPause ? 'Mi-temps' : sim.clock() + "'";
   const st = sim.stats;
   const p0 = Math.round(st.poss[0] / Math.max(1e-9, st.poss[0] + st.poss[1]) * 100) || 50;
@@ -115,38 +132,55 @@ function refreshLive(full = false) {
   $('lv-ctrl').innerHTML = controls();
 }
 
-function flash(text, color) {
-  const el = document.getElementById('lv-flash');
-  if (!el) return;
-  el.innerHTML = `<b style="${color ? `color:${color}` : ''}">${esc(text)}</b>`;
-  clearTimeout(ui.live.flashT);
-  ui.live.flashT = setTimeout(() => { if (el) el.innerHTML = ''; }, 1600);
+// Durée d'une minute à l'écran : courte quand il ne se passe rien, plus longue pour les temps forts
+const HL = { 1: 3400, 2: 1800, 4: 850 };
+const CELEB = { 1: 2700, 2: 1400, 4: 700 };
+
+// Un événement devient visible (fil du match, score, bandeau)
+function showEvent(e) {
+  const L = ui.live;
+  if (!L) return;
+  L.feed.push(e);
+  L.newEvents.push(e);
+  const S = G.S;
+  const nm = (pid) => (pid && S.players[pid] ? pshort(S.players[pid]) : '');
+  if (e.type === 'goal') {
+    if (L.shown) L.shown[e.t]++;
+    anim.banner(`${nm(e.pid)}${e.pid2 ? ' · passe ' + nm(e.pid2) : ''}`, L.colors[e.t], 2200 / L.speed);
+  } else if (e.type === 'yellow') anim.banner(`CARTON JAUNE · ${nm(e.pid)}`, '#f5c542', 1600 / L.speed);
+  else if (e.type === 'red') anim.banner(`CARTON ROUGE · ${nm(e.pid)}`, '#ff5f57', 2000 / L.speed, true);
+  else if (e.type === 'var') anim.banner('VAR · VÉRIFICATION', '#7dd3fc', 1500 / L.speed, true);
+  else if (e.type === 'varok') anim.banner('BUT VALIDÉ', '#c6f43d', 1400 / L.speed, true);
+  else if (e.type === 'vardis') anim.banner('BUT REFUSÉ', '#ff5f57', 1800 / L.speed, true);
+  else if (e.type === 'sub') anim.banner(e.text.replace(/^Changement [^:]*: /, '🔁 '), '#e8f5ec', 1500 / L.speed);
+  else if (e.type === 'injury') { anim.banner(`🚑 ${nm(e.pid)}`, '#ffb4a8', 1500 / L.speed); if (e.t === L.us) toast(e.text); }
+  else if (e.type === 'penmiss') anim.banner('PENALTY MANQUÉ', '#9ee6ff', 1400 / L.speed, true);
+  else if (e.type === 'ht') anim.banner('MI-TEMPS', '#e8f5ec', 2000, true);
+  else if (e.type === 'ft') anim.banner('FIN DU MATCH', '#e8f5ec', 3000, true);
+  refreshLive();
 }
 
 function tick() {
   const L = ui.live;
   if (!L || !L.playing || L.sim.done) return;
   const sim = L.sim;
+  if (L.needKick != null) { anim.flush(); anim.kickoff(L.needKick); L.needKick = null; }
   const out = sim.step();
   if (!out) return;
-  L.feed.push(...out.events);
-  L.newEvents.push(...out.events);
-  anim.queue(out.phases, SPEEDS.find((s) => s[0] === L.speed)[2]);
-  let pause = 0;
-  for (const e of out.events) {
-    if (e.type === 'goal') { flash('BUT !', L.colors[e.t] === '#ffffff' ? '' : null); pause = 1500; anim.goal(e.t); }
-    else if (e.type === 'red') flash('ROUGE !', '#ff5f57');
-    else if (e.type === 'injury' && e.t === L.us) toast(e.text);
-  }
+  const sp = L.speed;
+  const hot = out.phases.some((ph) => ['goal', 'vargoal', 'save', 'miss', 'post', 'block'].includes(ph.k) || ph.type === 'pen');
+  const goals = out.phases.filter((ph) => ph.k === 'goal' || ph.k === 'vargoal').length;
+  const D = hot ? HL[sp] : SPEEDS.find((x) => x[0] === sp)[2];
+  anim.queue(out.phases, out.events, D, sp, showEvent);
+  if (out.events.some((e) => e.type === 'ht' || e.type === 'et')) L.needKick = 1;
   refreshLive();
-  if (sim.done) { endLive(); return; }
+  if (sim.done) { setTimeout(() => endLive(), Math.min(D, 1800)); return; }
   if (sim.halftime && !L.htDone) {
     L.htDone = true; L.playing = false; L.htPause = true;
-    refreshLive(true);
-    openModal('halftime');
+    setTimeout(() => { anim.flush(); refreshLive(true); openModal('halftime'); }, Math.min(D, 1500));
     return;
   }
-  L.timer = setTimeout(tick, SPEEDS.find((s) => s[0] === L.speed)[2] + pause);
+  L.timer = setTimeout(tick, D + goals * CELEB[sp]);
 }
 
 function endLive() {
@@ -154,6 +188,8 @@ function endLive() {
   if (L.ended) return;
   L.ended = true;
   clearTimeout(L.timer);
+  anim.flush();
+  L.shown = null;
   const S = G.S;
   finishUserMatch(S, L.m, L.sim);
   persist(true);
@@ -178,10 +214,21 @@ function startLive(quick) {
     go('home');
     return;
   }
-  ui.live = { sim, m, us: m.h === S.user ? 0 : 1, speed: 1, playing: true, feed: sim.events.slice(), newEvents: [], tab: 'feed', colors: teamColors(sim), htDone: false };
+  const colors = teamColors(sim);
+  ui.live = { sim, m, us: m.h === S.user ? 0 : 1, speed: 1, playing: true, feed: sim.events.slice(), newEvents: [], tab: 'feed', colors, htDone: false, shown: [0, 0] };
   go('live');
-  anim.init(sim);
-  ui.live.timer = setTimeout(tick, 600);
+  anim.init(sim, { colors, trims: trimColors(sim, colors), player: (pid) => S.players[pid] });
+  anim.banner("COUP D'ENVOI", '#e8f5ec', 1400, true);
+  ui.live.timer = setTimeout(tick, 1100);
+}
+
+// Liseré des maillots : couleur secondaire du club si elle se distingue de la couleur principale
+function trimColors(sim, colors) {
+  return [0, 1].map((t) => {
+    const cc = sim.sides[t].club.colors;
+    const alt = cc.find((c) => c !== colors[t] && colorDist(c, colors[t]) > 90);
+    return alt || (inkOn(colors[t]) === '#ffffff' ? '#ffffff' : '#111827');
+  });
 }
 
 function teamColors(sim) {
@@ -190,127 +237,6 @@ function teamColors(sim) {
   if (colorDist(a[0], c1) < 120) c1 = colorDist(a[0], b[1]) > 120 ? b[1] : (colorDist(a[0], '#ffffff') > 150 ? '#ffffff' : '#111827');
   return [a[0], c1];
 }
-
-// ---------- Animation du terrain ----------
-const anim = {
-  init(sim) {
-    this.sim = sim;
-    this.pos = {};
-    this.ball = { x: 52.5, y: 34 };
-    this.path = [];
-    this.goalFx = null;
-    this.running = true;
-    cancelAnimationFrame(this.raf);
-    const loop = (ts) => { if (!this.running) return; this.frame(ts); this.raf = requestAnimationFrame(loop); };
-    this.raf = requestAnimationFrame(loop);
-  },
-  stop() { this.running = false; cancelAnimationFrame(this.raf); },
-  slotXY(t, sl, bx, by) {
-    const sim = this.sim;
-    const poss = this.owner === t;
-    let X = 4 + sl.y * 0.58, Y = 2 + sl.x * 0.64;
-    if (sl.pos === 'GB') X = 4;
-    const bxT = t === 0 ? bx : 105 - bx;
-    let shift = clamp((bxT - 38) * 0.62 + (poss ? 6 : -2), -6, 44);
-    if (sl.pos === 'GB') shift = clamp(shift * 0.15, 0, 10);
-    X += shift;
-    const byT = t === 0 ? by : 68 - by;
-    Y += (byT - 34) * 0.22;
-    if (t === 1) { X = 105 - X; Y = 68 - Y; }
-    return { x: clamp(X, 1, 104), y: clamp(Y, 1, 67) };
-    void sim;
-  },
-  playerPos(pid) { return this.pos[pid] || { x: 52.5, y: 34 }; },
-  queue(phases, dur) {
-    const pts = [];
-    for (const ph of phases) {
-      this.owner = ph.t;
-      const att = ph.t;
-      for (const id of ph.ids || []) if (id) { const p = this.playerPos(id); pts.push({ x: p.x + R.range(-1, 1), y: p.y + R.range(-1, 1), t: att }); }
-      const gx = att === 0 ? 105 : 0;
-      const sx = att === 0 ? 1 : -1;
-      if (ph.k === 'goal') pts.push({ x: gx + sx * 1.2, y: 34 + R.range(-2.8, 2.8), t: att, goal: true });
-      else if (ph.k === 'save') pts.push({ x: gx - sx * 2.5, y: 34 + R.range(-2, 2), t: att });
-      else if (ph.k === 'miss') pts.push({ x: gx + sx * 2, y: 34 + (R.chance(0.5) ? 1 : -1) * R.range(5, 12), t: att });
-      else if (ph.k === 'post') pts.push({ x: gx, y: 34 + (R.chance(0.5) ? 3.66 : -3.66), t: att });
-      else if (ph.k === 'block') pts.push({ x: gx - sx * R.range(12, 20), y: 34 + R.range(-8, 8), t: att });
-      else if (ph.k === 'corner') pts.push({ x: gx, y: R.chance(0.5) ? 1 : 67, t: att });
-      else if (ph.k === 'lost' || ph.k === 'defended' || ph.k === 'offside') {
-        const D = this.sim.sides[1 - att];
-        const cand = D.slots.filter((s) => s.pid && s.pos !== 'GB');
-        if (cand.length) { const p = this.playerPos(R.pick(cand).pid); pts.push({ x: p.x, y: p.y, t: 1 - att }); }
-      }
-    }
-    if (!pts.length) {
-      const T = this.sim.sides[this.owner ?? 0];
-      const c = T.slots.filter((s) => s.pid);
-      if (c.length) { const p = this.playerPos(R.pick(c).pid); pts.push({ x: p.x, y: p.y, t: this.owner ?? 0 }); }
-    }
-    const now = performance.now();
-    const step = dur / Math.max(1, pts.length);
-    this.path = pts.map((p, i) => ({ ...p, at: now + step * (i + 1) }));
-    this.from = { x: this.ball.x, y: this.ball.y, at: now };
-  },
-  goal(t) { this.goalFx = { t, until: performance.now() + 1500 }; this.kickoffAt = performance.now() + 1500; },
-  frame(ts) {
-    const cv = document.getElementById('lv-canvas');
-    if (!cv) { this.stop(); return; }
-    const sim = this.sim;
-    const w = cv.clientWidth, h = cv.clientHeight;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (cv.width !== Math.round(w * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-    const ctx = cv.getContext('2d');
-    const k = cv.width / 105;
-    ctx.setTransform(k, 0, 0, k, 0, 0);
-    // Ballon
-    if (this.kickoffAt && ts > this.kickoffAt) { this.ball = { x: 52.5, y: 34 }; this.path = []; this.kickoffAt = null; }
-    if (this.path.length) {
-      const nxt = this.path[0];
-      const span = Math.max(1, nxt.at - this.from.at);
-      const f = clamp((ts - this.from.at) / span, 0, 1);
-      const e = f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2;
-      this.ball = { x: this.from.x + (nxt.x - this.from.x) * e, y: this.from.y + (nxt.y - this.from.y) * e };
-      if (f >= 1) { this.from = { x: nxt.x, y: nxt.y, at: nxt.at }; this.path.shift(); }
-    }
-    // Terrain
-    for (let i = 0; i < 10; i++) { ctx.fillStyle = i % 2 ? '#1c6537' : '#1f6f3d'; ctx.fillRect(i * 10.5, 0, 10.5, 68); }
-    ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 0.35;
-    ctx.strokeRect(1, 1, 103, 66);
-    ctx.beginPath(); ctx.moveTo(52.5, 1); ctx.lineTo(52.5, 67); ctx.stroke();
-    ctx.beginPath(); ctx.arc(52.5, 34, 9.15, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeRect(1, 13.85, 16.5, 40.3); ctx.strokeRect(87.5, 13.85, 16.5, 40.3);
-    ctx.strokeRect(1, 24.85, 5.5, 18.3); ctx.strokeRect(98.5, 24.85, 5.5, 18.3);
-    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(0, 30.34, 1, 7.32); ctx.fillRect(104, 30.34, 1, 7.32);
-    if (this.goalFx && ts < this.goalFx.until) {
-      const a = 0.25 + 0.2 * Math.sin(ts / 80);
-      ctx.fillStyle = `rgba(198,244,61,${a})`;
-      if (this.goalFx.t === 0) ctx.fillRect(87.5, 1, 16.5, 66); else ctx.fillRect(1, 1, 16.5, 66);
-    }
-    // Joueurs
-    const colors = ui.live?.colors || ['#d62828', '#1d4ed8'];
-    for (let t = 0; t < 2; t++) {
-      const side = sim.sides[t];
-      const ink = inkOn(colors[t]);
-      for (const sl of side.slots) {
-        if (!sl.pid) continue;
-        const tgt = this.slotXY(t, sl, this.ball.x, this.ball.y);
-        const cur = this.pos[sl.pid] || (this.pos[sl.pid] = { ...tgt });
-        cur.x += (tgt.x - cur.x) * 0.06; cur.y += (tgt.y - cur.y) * 0.06;
-        ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(cur.x + 0.4, cur.y + 0.6, 1.9, 1.3, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = sl.pos === 'GB' ? (t === 0 ? '#f5c542' : '#a78bfa') : colors[t];
-        ctx.beginPath(); ctx.arc(cur.x, cur.y, 1.9, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 0.3; ctx.stroke();
-        const p = G.S.players[sl.pid];
-        ctx.fillStyle = sl.pos === 'GB' ? '#111' : ink; ctx.font = 'bold 1.9px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(String(p?.num ?? ''), cur.x, cur.y + 0.1);
-      }
-    }
-    // Ballon
-    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(this.ball.x + 0.5, this.ball.y + 0.7, 0.9, 0.6, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, 0.85, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#111'; ctx.lineWidth = 0.15; ctx.stroke();
-  },
-};
 
 // ---------- Modales en direct ----------
 function liveTacModal() {
@@ -372,11 +298,11 @@ register({
     playLive: () => startLive(false),
     playQuick: () => startLive(true),
     lvPlay: () => { const L = ui.live; L.playing = !L.playing; L.htPause = false; if (L.playing) { clearTimeout(L.timer); L.timer = setTimeout(tick, 100); } refreshLive(); },
-    lvSpeed: (d) => { ui.live.speed = +d.v; refreshLive(); },
+    lvSpeed: (d) => { ui.live.speed = +d.v; anim.speed = +d.v; refreshLive(); },
     lvTab: (d) => { ui.live.tab = d.k; document.querySelectorAll('#lv-tabs .tab').forEach((b) => b.classList.toggle('on', b.dataset.k === d.k)); refreshLive(true); },
     lvTac: () => { const L = ui.live; L.playing = false; clearTimeout(L.timer); L.subOut = null; if (ui.modals.length && ui.modals[ui.modals.length - 1].type === 'halftime') replaceModal('livetac'); else openModal('livetac'); refreshLive(); },
     lvTacSet: (d) => { const L = ui.live; L.sim.setTactics(L.us, { [d.k]: +d.v }); replaceModal('livetac'); },
-    lvForm: (d, el) => { const L = ui.live; L.sim.setTactics(L.us, { formation: el.value }); anim.pos = {}; replaceModal('livetac'); toast(`Passage en ${el.value}.`); },
+    lvForm: (d, el) => { const L = ui.live; L.sim.setTactics(L.us, { formation: el.value }); anim.over = {}; replaceModal('livetac'); toast(`Passage en ${el.value}.`); },
     lvSubOut: (d) => { ui.live.subOut = d.id; replaceModal('livetac'); },
     lvSubCancel: () => { ui.live.subOut = null; replaceModal('livetac'); },
     lvSubIn: (d) => { const L = ui.live; if (L.sim.substitute(L.us, L.subOut, d.id)) { L.feed.push(L.sim.events[L.sim.events.length - 1]); L.newEvents.push(L.sim.events[L.sim.events.length - 1]); } L.subOut = null; replaceModal('livetac'); refreshLive(true); },
@@ -396,6 +322,7 @@ register({
     },
     lvEnd: () => {
       const L = ui.live; clearTimeout(L.timer); L.playing = false;
+      anim.flush();
       L.sim.sides[L.us].auto = true;
       L.sim.quiet = true;
       while (!L.sim.done) { const out = L.sim.step(); if (out) L.feed.push(...out.events.filter((e) => e.text)); }

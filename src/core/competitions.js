@@ -1,6 +1,7 @@
 // Compétitions : calendrier, classements, coupes, coupe continentale.
 import { R } from './rng.js';
-import { CONTI_NAME, LEAGUE_COUNTRIES } from './constants.js';
+import { LEAGUE_COUNTRIES, contiName } from './constants.js';
+import { leagueDays } from './dates.js';
 
 export function newMatch(state, c, rd, day, h, a, opts = {}) {
   const id = 'm' + (state.nextMid++).toString(36);
@@ -18,16 +19,22 @@ export function rebuildIndexes(state) {
   for (const m of Object.values(state.matches)) (state.byDay[m.d] ||= []).push(m.id);
 }
 
+// Calendrier aller (méthode du cercle), domicile/extérieur équilibrés au fil des journées
 function roundRobin(ids) {
   const n = ids.length;
   const arr = ids.slice();
   const rounds = [];
+  const home = {}, last = {};
+  for (const c of ids) { home[c] = 0; last[c] = 0; }
   for (let r = 0; r < n - 1; r++) {
     const pairs = [];
     for (let i = 0; i < n / 2; i++) {
       const a = arr[i], b = arr[n - 1 - i];
-      const flip = i === 0 ? r % 2 === 1 : (r + i) % 2 === 1;
-      pairs.push(flip ? [b, a] : [a, b]);
+      // Reçoit : celui qui a le moins joué à domicile, sinon celui qui sort d'un déplacement
+      let hA = home[a] < home[b] || (home[a] === home[b] && (last[a] < last[b] || (last[a] === last[b] && (r + i) % 2 === 0)));
+      const h = hA ? a : b, aw = hA ? b : a;
+      home[h]++; last[h] = 1; last[aw] = -1;
+      pairs.push([h, aw]);
     }
     rounds.push(pairs);
     arr.splice(1, 0, arr.pop());
@@ -44,8 +51,9 @@ export function scheduleLeague(state, comp) {
   comp.rounds = rounds.length;
   comp.table = {};
   for (const c of comp.clubs) comp.table[c] = newRow(c);
+  const days = leagueDays(state.sd, rounds.length);
   rounds.forEach((pairs, i) => {
-    for (const [h, a] of pairs) newMatch(state, comp.id, i + 1, state.sd.league[i], h, a);
+    for (const [h, a] of pairs) newMatch(state, comp.id, i + 1, days[i], h, a);
   });
 }
 
@@ -73,7 +81,9 @@ function applyRow(row, gf, ga) {
 export function scheduleCup(state, cup) {
   const d1 = state.comps[cup.country + '1'].clubs, d2 = state.comps[cup.country + '2'].clubs;
   cup.clubs = [...d1, ...d2];
-  const weakest = d2.slice().sort((a, b) => state.clubs[a].rep - state.clubs[b].rep).slice(0, 8);
+  // Tour préliminaire : les plus faibles jouent pour ramener le tableau à 32 clubs
+  const nPre = Math.max(1, cup.clubs.length - 32);
+  const weakest = d2.slice().sort((a, b) => state.clubs[a].rep - state.clubs[b].rep).slice(0, Math.min(d2.length, nPre * 2));
   cup.byes = cup.clubs.filter((c) => !weakest.includes(c));
   cup.stages = state.sd.cup.map((s) => ({ ...s, mids: [] }));
   cup.stage = 0;
@@ -126,7 +136,7 @@ function progressCup(state, cup, notify) {
 
 // ---------- Coupe continentale ----------
 export function scheduleConti(state, qualified) {
-  const conti = { id: 'CONT', type: 'conti', name: CONTI_NAME, clubs: qualified.slice(), groups: [], ko: [], stage: 'groups', winner: null, out: {} };
+  const conti = { id: 'CONT', type: 'conti', name: contiName(state), clubs: qualified.slice(), groups: [], ko: [], stage: 'groups', winner: null, out: {} };
   state.comps.CONT = conti;
   const sorted = qualified.slice().sort((a, b) => state.clubs[b].rep - state.clubs[a].rep);
   const pots = [0, 1, 2, 3].map((i) => R.shuffle(sorted.slice(i * 4, i * 4 + 4)));
@@ -209,21 +219,29 @@ export function progressCompetitions(state, notify) {
   }
 }
 
-// Qualifiés pour la prochaine coupe continentale
+// Qualifiés pour la prochaine coupe continentale (16 clubs : places par pays, puis meilleurs suivants)
 export function contiQualifiers(state, byRep = false) {
   const q = [];
-  const fourths = [];
+  const next = [];
   for (const C of LEAGUE_COUNTRIES) {
     const comp = state.comps[C.code + '1'];
     let order;
     if (byRep) order = comp.clubs.slice().sort((a, b) => state.clubs[b].rep - state.clubs[a].rep).map((c) => ({ c, pts: state.clubs[c].rep, gd: 0 }));
-    else order = leagueTable(state, comp).map((r) => ({ c: r.c, pts: r.pts, gd: r.gf - r.ga }));
-    q.push(order[0].c, order[1].c, order[2].c);
-    fourths.push(order[3]);
+    else order = leagueTable(state, comp).map((r) => ({ c: r.c, pts: r.pts * 34 / Math.max(1, r.p), gd: r.gf - r.ga }));
+    const n = C.conti || 3;
+    for (let i = 0; i < n; i++) q.push(order[i].c);
+    next.push(...order.slice(n, n + 2));
   }
-  fourths.sort((a, b) => b.pts - a.pts || b.gd - a.gd);
-  q.push(fourths[0].c);
-  return q;
+  next.sort((a, b) => b.pts - a.pts || b.gd - a.gd);
+  for (let i = 0; q.length < 16 && i < next.length; i++) q.push(next[i].c);
+  return q.slice(0, 16);
+}
+
+// Nombre de journées du plus grand championnat
+export function maxRoundsOf(state) {
+  let n = 0;
+  for (const comp of Object.values(state.comps)) if (comp.type === 'league') n = Math.max(n, 2 * (comp.clubs.length - 1));
+  return n || 34;
 }
 
 export function compName(state, id) {

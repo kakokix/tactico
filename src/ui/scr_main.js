@@ -3,7 +3,7 @@ import { G, ui, register, render, go, openModal, closeModal, modalHead, toast, p
 import { ICON, esc, crest, flag, money, ovrB, posB, stars, rtB, natName } from './util.js';
 import { NATIONS } from '../data/names.js';
 import { LEAGUE_COUNTRIES, GAME_NAME } from '../core/constants.js';
-import { generateWorld } from '../core/worldgen.js';
+import { generateWorld, generateRealWorld } from '../core/worldgen.js';
 import { startCareer, nextUserMatch, userMatchToday } from '../core/game.js';
 import { leagueTable, positionOf, compName, matchWinner } from '../core/competitions.js';
 import { fmtDate } from '../core/dates.js';
@@ -43,7 +43,8 @@ function titleScreen() {
     ${meta ? `<button class="btn pri block" data-a="loadCareer" style="min-height:56px;font-size:16px">${ICON.play} Continuer : ${esc(meta.mgr)} · ${esc(meta.club || 'sans club')} · ${meta.season}-${(meta.season + 1) % 100}</button>` : ''}
     <button class="btn ${meta ? '' : 'pri'} block" data-a="newCareer" style="min-height:52px">${ICON.plus} Nouvelle carrière</button>
     <div class="grid2"><button class="btn block" data-a="importOpen">${ICON.save} Importer une sauvegarde</button><button class="btn block" data-a="titleBoard">${ICON.world} Classement mondial</button></div>
-    <p class="dim small center">5 championnats · 180 clubs · plus de 5 000 joueurs fictifs</p>
+    <p class="dim small center">5 pays · 10 championnats · 198 vrais clubs 2026-27 (ou monde fictif)</p>
+    <p class="dim small center disclaimer">Jeu non officiel, sans lien avec les clubs, les ligues ou les joueurs cités. Aucun logo officiel n'est utilisé.</p>
   </div></div>`;
 }
 
@@ -55,6 +56,10 @@ function mgrStep() {
     <div class="card">
       <div class="field"><label for="mgrname">Pseudo (visible au classement mondial)</label><input id="mgrname" class="input" maxlength="20" value="${esc(f.name)}" placeholder="Ex : Kakokix" data-in="mgrName" autocomplete="off"></div>
       <div class="field"><label for="mgrnat">Nationalité</label><select id="mgrnat" class="input" data-ch="mgrNat">${Object.entries(NATIONS).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([k, v]) => `<option value="${k}" ${k === f.nat ? 'selected' : ''}>${v.flag} ${esc(v.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Monde</label><div class="worlds">
+        <button class="world ${f.world !== 'fictif' ? 'on' : ''}" data-a="mgrWorld" data-w="real"><b>Monde réel 2026-27</b><span>Vrais clubs, vrais joueurs, vrais championnats (20 clubs en Premier League, 24 en Championship…)</span></button>
+        <button class="world ${f.world === 'fictif' ? 'on' : ''}" data-a="mgrWorld" data-w="fictif"><b>Monde fictif</b><span>Clubs et joueurs inventés, 18 clubs par division</span></button>
+      </div></div>
       <button class="btn pri block" data-a="toClubStep">Choisir mon club ${ICON.next}</button>
     </div></div></div>`;
 }
@@ -105,6 +110,7 @@ register({
     newCareerGo: () => { closeModal(); ui.p = { step: 'mgr' }; render(); },
     mgrName: (d, el) => { ui.f.mgr.name = el.value; },
     mgrNat: (d, el) => { ui.f.mgr.nat = el.value; },
+    mgrWorld: (d) => { ui.f.mgr.world = d.w; render(); },
     toMgrStep: () => { ui.p = { step: 'mgr' }; render(); },
     toClubStep: () => {
       const name = (ui.f.mgr.name || '').trim();
@@ -112,7 +118,8 @@ register({
       if (!/^[\p{L}\p{N} _.\-']+$/u.test(name)) { toast('Pseudo : lettres, chiffres, espaces et - _ . seulement.', true); return; }
       ui.f.cc = ui.f.mgr.nat && LEAGUE_COUNTRIES.some((c) => c.code === ui.f.mgr.nat) ? ui.f.mgr.nat : 'FR';
       ui.f.lvl = 1;
-      if (!G.S || G.S.mgr) G.S = generateWorld((Date.now() ^ (Math.random() * 1e9)) >>> 0);
+      const real = ui.f.mgr.world !== 'fictif';
+      if (!G.S || G.S.mgr || (G.S.mode === 'real') !== real) G.S = (real ? generateRealWorld : generateWorld)((Date.now() ^ (Math.random() * 1e9)) >>> 0);
       ui.p = { step: 'club' }; render(); window.scrollTo(0, 0);
     },
     pickCountry: (d) => { ui.f.cc = d.c; render(); },

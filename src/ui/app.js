@@ -61,6 +61,19 @@ export function moreScreen() {
   return `<div class="ph"><h1>Menu</h1></div><div class="list">${items.map(([id, label, ic]) => `<button class="li" data-a="nav" data-s="${id}"><span style="width:22px;color:var(--lime)">${ICON[ic]}</span><span class="grow nm">${label}</span>${id === 'inbox' && n ? `<span class="chip red">${n}</span>` : ''}</button>`).join('')}</div>`;
 }
 
+// Couleurs du club de l'utilisateur dans toute l'interface
+function clubTheme(club) {
+  const st = document.documentElement.style;
+  if (!club) { st.removeProperty('--club1'); st.removeProperty('--club2'); return; }
+  const [a, b] = club.colors;
+  const lum = (h) => { const n = parseInt(h.slice(1), 16); return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114; };
+  // couleur d'accent lisible sur fond sombre
+  const acc = lum(a) > 70 ? a : lum(b) > 70 ? b : '#c6f43d';
+  st.setProperty('--club1', a);
+  st.setProperty('--club2', b);
+  st.setProperty('--clubacc', acc);
+}
+
 export function render() {
   const root = document.getElementById('app');
   const S = G.S;
@@ -72,7 +85,9 @@ export function render() {
     const fn = ui.screen === 'more' ? moreScreen : SCREENS[ui.screen] || SCREENS.home;
     let body;
     try { body = fn(); } catch (e) { console.error(e); body = `<div class="card warn">Erreur d'affichage : ${esc(e.message)}</div>`; }
-    root.innerHTML = `${topbar()}<div class="layout">${sidebar()}<main class="main">${body}<p class="footer-note">Tactico · jeu de manager de football · clubs et joueurs fictifs</p></main></div>${bottomnav()}`;
+    const club = S.user ? S.clubs[S.user] : null;
+    clubTheme(club);
+    root.innerHTML = `${topbar()}<div class="layout">${sidebar()}<main class="main">${body}<p class="footer-note">${S.mode === 'real' ? 'Tactico · jeu de manager de football non officiel, sans lien avec les clubs, les ligues ou les joueurs cités. Aucun logo officiel : les écussons sont génériques.' : 'Tactico · jeu de manager de football · clubs et joueurs fictifs'}</p></main></div>${bottomnav()}`;
   }
   renderModals();
   AFTER[ui.screen]?.();

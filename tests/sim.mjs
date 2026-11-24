@@ -1,4 +1,4 @@
-import { generateWorld } from '../src/core/worldgen.js';
+import { generateWorld, generateRealWorld } from '../src/core/worldgen.js';
 import { startCareer, continueGame, createSim, finishUserMatch } from '../src/core/game.js';
 import { leagueTable } from '../src/core/competitions.js';
 import { fmtDate } from '../src/core/dates.js';
@@ -6,7 +6,8 @@ import { takeJob, vacancies } from '../src/core/board.js';
 import { LEAGUE_COUNTRIES } from '../src/core/constants.js';
 
 const seasonsWanted = +(process.argv[2] || 3);
-const S = generateWorld(+(process.argv[3] || 777));
+const REAL = process.argv[4] !== 'fictif';
+const S = (REAL ? generateRealWorld : generateWorld)(+(process.argv[3] || 777));
 const fr1 = S.comps.FR1.clubs.map(id => S.clubs[id]).sort((a,b)=>b.rep-a.rep);
 const pick = fr1[8];
 startCareer(S, { name: 'Testeur', nat: 'FR', clubId: pick.id });
@@ -36,7 +37,8 @@ for (let i = 0; i < 4000; i++) {
     seasons++;
     const rep = r.report;
     console.log(`\n=== Fin saison ${rep.s} (${((Date.now()-t0)/1000).toFixed(1)}s, user matches ${userMatches}) ===`);
-    for (const l of rep.leagues.filter(l=>l.level===1)) console.log(' ', l.name, '→', S.clubs[l.champ].name, '|', l.awards.map(a=>`${a.k}: ${a.n} (${a.v})`).join('; '));
+    for (const l of rep.leagues.filter(l=>l.level===1)) console.log(' ', l.name, '→', l.table.slice(0,4).map(c=>S.clubs[c].short).join(', '), '| bas:', l.table.slice(-3).map(c=>S.clubs[c].short).join(', '), '|', l.awards.map(a=>`${a.k}: ${a.n} (${a.v})`).join('; '));
+    if (rep.po) console.log('  PO:', rep.po.join(' / '));
     console.log('  Coupes:', rep.cups.map(c=>c.name+': '+(c.winner?S.clubs[c.winner].name:'?')).join(' | '), '| Conti:', rep.conti ? S.clubs[rep.conti].name : '?');
     console.log('  Gold:', rep.gold?.n, '| User:', JSON.stringify(rep.user));
     console.log('  transfers:', S.transfers.length, '|', stat());

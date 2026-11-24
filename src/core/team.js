@@ -67,11 +67,13 @@ export function clubStrength(state, club) {
   return lineupStrength(state, f, lineup);
 }
 
+// Formations courantes favorisées (les systèmes à cinq défenseurs restent des choix d'exception)
+const COMMON = { '4-3-3': 0.5, '4-2-3-1': 0.5, '4-4-2': 0.2, '3-4-3': 0, '3-5-2': 0, '4-1-2-1-2': -0.2, '4-5-1': -0.2, '5-3-2': -0.4, '5-4-1': -0.6 };
 export function bestFormation(state, club) {
   let best = null, bs = -1;
   for (const f of FORMATION_LIST) {
     const { lineup } = autoLineup(state, club, f, { rotate: false });
-    const s = lineupStrength(state, f, lineup) + (club.pref === f ? 0.6 : 0);
+    const s = lineupStrength(state, f, lineup) + (club.pref === f ? 0.6 : 0) + (COMMON[f] || 0);
     if (s > bs) { bs = s; best = f; }
   }
   return best;

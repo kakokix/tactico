@@ -7,13 +7,16 @@ import { condFactor } from './team.js';
 const DW = { GB: 0, DC: 1.0, DD: 0.8, DG: 0.8, MDC: 0.6, MC: 0.3, MD: 0.3, MG: 0.3, MOC: 0.1, AD: 0.15, AG: 0.15, BU: 0.05 };
 const MW = { GB: 0.05, DC: 0.2, DD: 0.35, DG: 0.35, MDC: 0.9, MC: 1.0, MD: 0.7, MG: 0.7, MOC: 0.8, AD: 0.35, AG: 0.35, BU: 0.2 };
 const AW = { GB: 0, DC: 0.05, DD: 0.25, DG: 0.25, MDC: 0.15, MC: 0.35, MD: 0.6, MG: 0.6, MOC: 0.85, AD: 0.9, AG: 0.9, BU: 1.0 };
-const K_DEF = 5.0, K_MID = 4.9, K_ATT = 4.4;
+const K_DEF = 5.0, K_MID = 4.9, K_ATT = 4.3;
+// Sommes de référence (4-3-3) : chaque formation est en grande partie ramenée à ce total,
+// pour que le système change le profil de l'équipe sans la rendre beaucoup plus forte ou plus faible
+const REF_W = { d: 5.15, m: 4.95, a: 4.25 }, NORM = 0.75;
 const STYLE_SHARE = [0.05, 0, -0.04, -0.07];
 const STYLE_PROG = [-0.02, 0, 0.05, 0.02];
 const STYLE_CHANCE = [0.03, 0, -0.03, 0];
 const PRESS_FOUL = [0.85, 1, 1.25];
 const XG = { through: 0.26, cross: 0.08, cutback: 0.17, long: 0.035, dribble: 0.12, scramble: 0.28, header_sp: 0.07, fk: 0.06 };
-const SHOOT_W = { GB: 0, DC: 0.3, DD: 0.35, DG: 0.35, MDC: 0.45, MC: 0.95, MD: 1.4, MG: 1.4, MOC: 2.0, AD: 2.1, AG: 2.1, BU: 3.1 };
+const SHOOT_W = { GB: 0, DC: 0.3, DD: 0.35, DG: 0.35, MDC: 0.45, MC: 0.95, MD: 1.1, MG: 1.1, MOC: 1.7, AD: 1.65, AG: 1.65, BU: 2.9 };
 const HEAD_W = { GB: 0, DC: 2.2, DD: 0.4, DG: 0.4, MDC: 0.9, MC: 0.7, MD: 0.5, MG: 0.5, MOC: 0.6, AD: 0.6, AG: 0.6, BU: 3 };
 const WIDE = new Set(['DD', 'DG', 'MD', 'MG', 'AD', 'AG']);
 
@@ -48,6 +51,8 @@ const T_ = {
   sub: ['Changement {team} : {in} remplace {out}.'],
   quiet: ['{team} fait tourner le ballon.', 'Phase de possession pour {team}.', '{team} cherche la faille.', 'Le jeu se déroule au milieu de terrain.', '{team} construit patiemment depuis l\'arrière.'],
 };
+// Les très gros écarts de niveau ont un effet amorti (pas de scores fleuves à répétition)
+const soft = (x) => (Math.abs(x) <= 1.2 ? x : Math.sign(x) * (1.2 + (Math.abs(x) - 1.2) * 0.5));
 const fill = (tpls, o) => (Array.isArray(tpls) ? R.pick(tpls) : tpls).replace(/\{(\w+)\}/g, (_, k) => (o[k] ?? ''));
 
 export class MatchSim {
@@ -81,7 +86,7 @@ export class MatchSim {
     };
     for (const sl of slots) {
       if (!sl.pid) continue;
-      side.rat[sl.pid] = 6.0 + R.normal(0, 0.12);
+      side.rat[sl.pid] = (sl.pos === 'GB' ? 6.28 : 6.45) + R.normal(0, 0.12);
       side.posOf[sl.pid] = sl.pos;
       side.inMin[sl.pid] = 0;
     }
@@ -96,6 +101,7 @@ export class MatchSim {
   ev(e) {
     e.min = this.clock();
     e.m = this.minute;
+    if (this.cur) e.ph = this.cur.phases.length - 1;
     if (this.quiet && e.type !== 'goal' && e.type !== 'red' && e.type !== 'injury' && e.type !== 'sub') delete e.text;
     this.events.push(e);
     if (this.cur) this.cur.events.push(e);
@@ -118,6 +124,11 @@ export class MatchSim {
       if (sl.pos === 'BU' || sl.pos === 'AD' || sl.pos === 'AG' || sl.pos === 'MOC') { pace += a[A.vit] * f; pn++; }
       if (sl.pos === 'DC' || sl.pos === 'DD' || sl.pos === 'DG') { dp += a[A.vit] * f; dn++; }
     }
+    let wd = 0, wm = 0, wa = 0;
+    for (const sl of side.slots) if (sl.pos !== 'GB') { wd += DW[sl.pos]; wm += MW[sl.pos]; wa += AW[sl.pos]; }
+    def *= (REF_W.d / (wd || REF_W.d)) ** NORM;
+    mid *= (REF_W.m / (wm || REF_W.m)) ** NORM;
+    att *= (REF_W.a / (wa || REF_W.a)) ** NORM;
     const coh = 0.97 + 0.06 * ((side.club.coh ?? 60) / 100);
     const home = !this.neutral && t === 0 ? 1.035 : 1;
     const tm = side.tactics;
@@ -199,7 +210,7 @@ export class MatchSim {
     this.cur.phases.push(ph);
     ph.ids = [this.pickBy(T, (pos) => MW[pos])];
     if (R.chance(0.095 * PRESS_FOUL[dt.press])) { this.foul(1 - t, t, false); return; }
-    const prog = clamp(0.4 + 0.05 * (T.r.mid - D.r.mid) + STYLE_PROG[tt.style] - (dt.press - 1) * 0.025 + (tt.ment - 2) * 0.02, 0.18, 0.72);
+    const prog = clamp(0.4 + 0.05 * soft(T.r.mid - D.r.mid) + STYLE_PROG[tt.style] - (dt.press - 1) * 0.025 + (tt.ment - 2) * 0.02, 0.18, 0.72);
     if (!R.chance(prog)) {
       ph.k = 'lost';
       if (R.chance(this.counterP(D, T) * 0.45)) this.counter(1 - t);
@@ -213,7 +224,7 @@ export class MatchSim {
       if (!this.quiet && R.chance(0.25)) { const s = this.pickShooter(T, 'through'); if (s) this.ev({ type: 'offside', t, pid: s, text: fill(T_.offside, { s: pshort(this.P(s)) }) }); }
       return;
     }
-    const pc = clamp(0.37 + 0.05 * (T.r.att * T.r.atkMod - D.r.def * D.r.defMod) + STYLE_CHANCE[tt.style], 0.1, 0.7);
+    const pc = clamp(0.37 + 0.05 * soft(T.r.att * T.r.atkMod - D.r.def * D.r.defMod) + STYLE_CHANCE[tt.style], 0.1, 0.7);
     if (R.chance(pc)) {
       if (R.chance(0.018)) this.penalty(t);
       else this.chance(t, this.chooseType(t), false);
@@ -274,7 +285,7 @@ export class MatchSim {
         sk = type === 'fk' ? a[A.cpa] * 1.5 : a[A.tir];
       } else if (type === 'dribble') { w = SHOOT_W[sl.pos]; sk = a[A.dri]; }
       else { w = SHOOT_W[sl.pos]; sk = a[A.fin]; }
-      c.push([sl.pid, w * Math.pow(sk / 10, 1.1)]);
+      c.push([sl.pid, w * Math.pow(sk / 10, 0.75)]);
     }
     if (!c.length) return null;
     return R.weighted(c, (x) => x[1])[0];
@@ -334,7 +345,24 @@ export class MatchSim {
       const tpl = T_[type] || T_.dribble;
       this.ev({ type: 'chance', t, pid: s, text: fill(ap || !tpl.some((x) => x.includes('{a}')) ? tpl : T_.dribble, names) });
     }
-    if (R.chance(pGoal)) { this.goal(t, s, a, type, ph); return; }
+    if (R.chance(pGoal)) {
+      if (type !== 'pen' && R.chance(0.05)) {
+        const why = R.pick(['hors-jeu', 'hors-jeu', 'faute préalable', 'main']);
+        if (R.chance(0.25)) {
+          ph.k = 'vargoal';
+          this.stats.on[t]++;
+          this.ev({ type: 'var', t, pid: s, text: `${pshort(sp)} pense avoir marqué… vérification VAR en cours.` });
+          this.ev({ type: 'vardis', t, pid: s, text: `But refusé par la VAR (${why}) !` });
+          return;
+        }
+        this.ev({ type: 'var', t, pid: s, text: `${pshort(sp)} marque… vérification VAR en cours.` });
+        this.goal(t, s, a, type, ph);
+        this.ev({ type: 'varok', t, text: 'La VAR valide le but !' });
+        return;
+      }
+      this.goal(t, s, a, type, ph);
+      return;
+    }
     const pBlock = type === 'long' ? 0.3 : type === 'cross' || type === 'header_sp' ? 0.1 : 0.18;
     if (R.chance(pBlock)) {
       ph.k = 'block';
@@ -346,7 +374,7 @@ export class MatchSim {
     const pOn = clamp(0.42 + 0.025 * (sk - 12), 0.22, 0.65);
     if (R.chance(pOn)) {
       this.stats.on[t]++; ph.k = 'save';
-      this.addR(D, gkId, xg > 0.22 ? 0.4 : 0.2);
+      this.addR(D, gkId, xg > 0.22 ? 0.32 : 0.16);
       this.addR(T, s, 0.06);
       if (a) this.addR(T, a, 0.08);
       if (!this.quiet) this.ev({ type: 'save', t, pid: s, pid2: gkId, text: fill(xg > 0.22 ? T_.bigsave : T_.save, names) });
@@ -420,6 +448,7 @@ export class MatchSim {
 
   corner(t, fromShot) {
     this.stats.cor[t]++;
+    if (this.cur) this.cur.phases.push({ t, z: 3, k: 'corner', ids: [] });
     if (R.chance(0.3)) this.chance(t, 'header_sp', false);
     else if (!this.quiet && R.chance(0.3)) this.ev({ type: 'corner', t, text: fill(T_.corner, { team: this.sides[t].club.name }) });
   }
@@ -431,6 +460,7 @@ export class MatchSim {
     for (const sl of D.slots) if (sl.pid && sl.pos !== 'GB') c.push([sl.pid, (DW[sl.pos] + 0.6) * (0.6 + this.P(sl.pid).attr[A.pui] / 25)]);
     if (!c.length) return;
     const pid = R.weighted(c, (x) => x[1])[0];
+    if (this.cur) this.cur.phases.push({ t: vt, z: dangerous ? 2 : 1, k: 'foul', ids: [pid] });
     const careful = D.yel[pid] ? 0.3 : 1;
     if (R.chance(0.0025)) this.card(dt, pid, true);
     else if (R.chance((0.165 + (dangerous ? 0.05 : 0)) * careful)) this.card(dt, pid, false);
@@ -495,7 +525,7 @@ export class MatchSim {
     T.outMin[outId] = this.minute;
     T.inMin[inId] = this.minute;
     T.posOf[inId] = sl.pos;
-    T.rat[inId] = 6.0 + R.normal(0, 0.1);
+    T.rat[inId] = 6.45 + R.normal(0, 0.1);
     if (T.cond[inId] == null) T.cond[inId] = this.P(inId).cond;
     this.recalc(t);
     this.ev({ type: 'sub', t, pid: inId, pid2: outId, text: fill(T_.sub, { team: T.club.name, in: pshort(this.P(inId)), out: pshort(this.P(outId)) }) });
@@ -644,9 +674,9 @@ export class MatchSim {
         const mins = (T.outMin[pid] ?? endMin) - (T.inMin[pid] ?? 0);
         const pos = T.posOf[pid];
         if (winner === t) r += 0.3; else if (winner === 1 - t) r -= 0.2;
-        if (conceded === 0 && mins >= 60 && (pos === 'GB' || POS_GROUP[pos] === 'DEF')) r += pos === 'GB' ? 0.6 : 0.4;
+        if (conceded === 0 && mins >= 60 && (pos === 'GB' || POS_GROUP[pos] === 'DEF')) r += pos === 'GB' ? 0.45 : 0.4;
         r += R.normal(0, 0.22);
-        if (mins < 20) r = 6 + (r - 6) * 0.6;
+        if (mins < 20) r = 6.45 + (r - 6.45) * 0.6;
         T.rat[pid] = clamp(round1(r), 3, 10);
       }
     }

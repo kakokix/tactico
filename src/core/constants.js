@@ -100,17 +100,27 @@ export const TRAINING_FOCUS = [
 ];
 export const TRAINING_INTENSITY = ['Légère', 'Normale', 'Intense'];
 
-// Pays jouables (championnats)
-export const LEAGUE_COUNTRIES = [
-  { code: 'FR', name: 'France', d1: 'Ligue Élite', d2: 'Ligue Pro', cup: 'Coupe de la Nation', str: 0.95, tv: 30 },
-  { code: 'EN', name: 'Angleterre', d1: 'Premier Division', d2: 'First Division', cup: 'National Cup', str: 1.0, tv: 70 },
-  { code: 'ES', name: 'Espagne', d1: 'Primera División', d2: 'Segunda División', cup: 'Copa Nacional', str: 0.99, tv: 45 },
-  { code: 'IT', name: 'Italie', d1: 'Prima Divisione', d2: 'Seconda Divisione', cup: 'Coppa Nazionale', str: 0.97, tv: 40 },
-  { code: 'DE', name: 'Allemagne', d1: 'Erste Liga', d2: 'Zweite Liga', cup: 'Pokal', str: 0.97, tv: 40 },
+// Pays jouables (championnats). Monde fictif par défaut ; le monde réel remplace cette liste (applyWorld).
+// down/up = relégations et montées directes, po = barrages ('playoff' : 3e-6e de D2, 'barrage' : 16e D1 contre 3e D2), conti = places européennes
+const FICTIONAL_COUNTRIES = [
+  { code: 'FR', name: 'France', d1: 'Ligue Élite', d2: 'Ligue Pro', cup: 'Coupe de la Nation', str: 0.95, tv: 30, down: 3, up: 3, po: null, conti: 3 },
+  { code: 'EN', name: 'Angleterre', d1: 'Premier Division', d2: 'First Division', cup: 'National Cup', str: 1.0, tv: 70, down: 3, up: 3, po: null, conti: 3 },
+  { code: 'ES', name: 'Espagne', d1: 'Primera División', d2: 'Segunda División', cup: 'Copa Nacional', str: 0.99, tv: 45, down: 3, up: 3, po: null, conti: 3 },
+  { code: 'IT', name: 'Italie', d1: 'Prima Divisione', d2: 'Seconda Divisione', cup: 'Coppa Nazionale', str: 0.97, tv: 40, down: 3, up: 3, po: null, conti: 3 },
+  { code: 'DE', name: 'Allemagne', d1: 'Erste Liga', d2: 'Zweite Liga', cup: 'Pokal', str: 0.97, tv: 40, down: 3, up: 3, po: null, conti: 3 },
 ];
+export const LEAGUE_COUNTRIES = FICTIONAL_COUNTRIES.map((c) => ({ ...c }));
 export const CONTI_NAME = 'Coupe des Étoiles';
 export const CLUBS_PER_DIV = 18;
-export const RELEGATION = 3;
+
+// Adapte les listes partagées au monde de la partie (réel ou fictif)
+export function applyWorld(state) {
+  const src = (state && state.countries) || FICTIONAL_COUNTRIES;
+  LEAGUE_COUNTRIES.length = 0;
+  for (const c of src) LEAGUE_COUNTRIES.push({ ...c });
+}
+export const contiName = (state) => (state && state.contiName) || CONTI_NAME;
+export const isReal = (state) => !!(state && state.mode === 'real');
 
 // Score manager (classement mondial) — même formule côté serveur
 export const SCORE_RULES = { win: 3, draw: 1, title1: 250, title2: 100, cup: 120, conti: 400, promo: 80, objMet: 40, objEx: 60 };

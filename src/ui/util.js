@@ -90,12 +90,12 @@ export function crestURI(club) {
   if (crestCache.has(key)) return crestCache.get(key);
   const [c1, c2] = club.colors;
   const d = SHAPES[club.crest.shape] || SHAPES[0];
-  const txt = (club.short || '?').slice(0, 3);
+  const txt = (club.abbr || club.short || '?').slice(0, 4);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120"><defs><clipPath id="k"><path d="${d}"/></clipPath></defs>`
     + `<path d="${d}" fill="${c1}"/><g clip-path="url(#k)">${patternSVG(club.crest.pat, c2)}</g>`
     + `<path d="${d}" fill="none" stroke="${c2}" stroke-width="5"/><path d="${d}" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/>`
     + `<circle cx="50" cy="60" r="25" fill="${c1}" stroke="${c2}" stroke-width="4"/>`
-    + `<text x="50" y="67.5" text-anchor="middle" font-family="Arial Black,Arial,Helvetica,sans-serif" font-weight="900" font-size="${txt.length > 2 ? 19 : 23}" fill="${c2}">${txt}</text></svg>`;
+    + `<text x="50" y="67.5" text-anchor="middle" font-family="Arial Black,Arial,Helvetica,sans-serif" font-weight="900" font-size="${txt.length > 3 ? 15 : txt.length > 2 ? 19 : 23}" fill="${c2}">${txt}</text></svg>`;
   const uri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   crestCache.set(key, uri);
   return uri;
@@ -119,4 +119,30 @@ export function colorDist(a, b) {
   const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
   const x = p(a), y = p(b);
   return Math.sqrt((x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2 + (x[2] - y[2]) ** 2);
+}
+
+// Maillot vu de face (couleurs du club), numéro au centre
+export function jersey(club, num, { gk = false, size = 40 } = {}) {
+  const c1 = gk ? '#f5c542' : club.colors[0];
+  let c2 = gk ? '#111827' : club.colors[1];
+  if (!gk && colorDist(c1, c2) < 60) c2 = inkOn(c1) === '#ffffff' ? '#ffffff' : '#111827';
+  const ink = inkOn(c1);
+  return `<svg class="jersey" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true"><path d="M14 3.5 8 5.8 2.5 12.5l5.3 5.6 3-2.6V36.5h18.4V15.5l3 2.6 5.3-5.6L32 5.8 26 3.5c-1.4 2.6-3.5 3.9-6 3.9s-4.6-1.3-6-3.9z" fill="${c1}" stroke="${c2}" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3.5c1.4 2.6 3.5 3.9 6 3.9s4.6-1.3 6-3.9" fill="none" stroke="${c2}" stroke-width="2.2"/><path d="M2.5 12.5l5.3 5.6M37.5 12.5l-5.3 5.6" stroke="${c2}" stroke-width="2.4"/><text x="20" y="27.5" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,Arial" font-weight="700" font-size="14" fill="${ink}">${num ?? ''}</text></svg>`;
+}
+
+// Radar à six axes (valeurs 1-20)
+export function radar(axes, color = '#c6f43d') {
+  const n = axes.length, R0 = 42, cx = 60, cy = 56;
+  const pt = (i, v) => { const a = -Math.PI / 2 + i * 2 * Math.PI / n; return [cx + Math.cos(a) * R0 * v, cy + Math.sin(a) * R0 * v]; };
+  const ring = (v) => axes.map((_, i) => pt(i, v).map((x) => x.toFixed(1)).join(',')).join(' ');
+  const poly = axes.map(([, v], i) => pt(i, Math.max(0.05, v / 20)).map((x) => x.toFixed(1)).join(',')).join(' ');
+  const labels = axes.map(([l, v], i) => { const [x, y] = pt(i, 1.22); return `<text x="${x.toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="middle" font-size="7.4" fill="#8fa99b">${l}</text><text x="${x.toFixed(1)}" y="${(y + 11).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="#eaf4ee">${Math.round(v)}</text>`; }).join('');
+  return `<svg class="radar" viewBox="-16 -2 152 126" role="img" aria-label="Profil du joueur">${[0.25, 0.5, 0.75, 1].map((v) => `<polygon points="${ring(v)}" fill="none" stroke="#2b4a39" stroke-width=".7"/>`).join('')}${axes.map((_, i) => { const [x, y] = pt(i, 1); return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#2b4a39" stroke-width=".6"/>`; }).join('')}<polygon points="${poly}" fill="${color}" fill-opacity=".28" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/>${labels}</svg>`;
+}
+
+// Carte des postes : poste principal en vert vif, postes secondaires plus pâles
+const POS_XY = { GB: [50, 93], DC: [50, 78], DD: [84, 74], DG: [16, 74], MDC: [50, 63], MC: [50, 50], MD: [86, 48], MG: [14, 48], MOC: [50, 36], AD: [82, 24], AG: [18, 24], BU: [50, 13] };
+export function posMap(main, alts = []) {
+  const dot = (pos, cls) => { const [x, y] = POS_XY[pos]; return `<span class="pd ${cls}" style="left:${x}%;top:${y}%">${pos}</span>`; };
+  return `<div class="posmap"><svg viewBox="0 0 68 100" preserveAspectRatio="none" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".5"><rect x="2" y="2" width="64" height="96"/><path d="M2 50h64"/><circle cx="34" cy="50" r="8"/><rect x="16" y="2" width="36" height="15"/><rect x="16" y="83" width="36" height="15"/></svg>${alts.map((a) => dot(a, 'p2')).join('')}${dot(main, 'p1')}</div>`;
 }

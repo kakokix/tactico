@@ -1,7 +1,7 @@
 // Écrans : calendrier, compétitions, fiche club, rapport de match.
 import { G, ui, register, render, openModal, modalHead } from './app.js';
 import { ICON, esc, crest, flag, money, ovrB, posB, rtB, stars, barColor, colorDist } from './util.js';
-import { LEAGUE_COUNTRIES, POS_ORDER, CONTI_NAME } from '../core/constants.js';
+import { LEAGUE_COUNTRIES, POS_ORDER, contiName } from '../core/constants.js';
 import { leagueTable, sortRows, compName, matchWinner } from '../core/competitions.js';
 import { fmtDate, toDate, monthName } from '../core/dates.js';
 import { pname, pshort, avgRating } from '../core/player.js';
@@ -31,7 +31,7 @@ function fixturesScreen() {
     return `${head}<button class="li" data-a="${m.done ? 'matchReport' : 'clubView'}" data-id="${m.done ? m.id : opp.id}"><span style="width:58px" class="small muted">${fmtDate(m.d, 'wdm')}</span>${crest(opp)}<span class="grow"><span class="nm">${home ? '' : '@ '}${esc(opp.name)}</span><span class="meta">${esc(compName(S, m.c))}${m.lb ? ' · ' + esc(m.lb) : ctype(S, m.c) === 'league' ? ' · J' + m.rd : ''}${m.neutral ? ' · terrain neutre' : home ? ' · domicile' : ' · extérieur'}</span></span>${m.done ? `<span class="form"><i class="${res}">${res}</i></span><b class="num" style="font-family:var(--cond);font-size:20px;width:58px;text-align:right">${home ? m.hg : m.ag}-${home ? m.ag : m.hg}${m.pen ? '*' : ''}</b>` : `<span class="small muted">${m.d === S.day ? "Aujourd'hui" : ''}</span>`}</button>`;
   }).join('');
   return `<div class="ph"><div><h1>Calendrier</h1><div class="sub">Saison ${S.season}-${(S.season + 1) % 100} · ${ms.filter((m) => m.done).length}/${ms.length} matchs joués</div></div></div>
-    <div class="tabs">${[['all', 'Tous'], ['league', 'Championnat'], ['cup', 'Coupe'], ['conti', CONTI_NAME]].map(([k, l]) => `<button class="tab ${f === k ? 'on' : ''}" data-a="fxTab" data-k="${k}">${l}</button>`).join('')}</div>
+    <div class="tabs">${[['all', 'Tous'], ['league', 'Championnat'], ['cup', 'Coupe'], ['conti', contiName(G.S)]].map(([k, l]) => `<button class="tab ${f === k ? 'on' : ''}" data-a="fxTab" data-k="${k}">${l}</button>`).join('')}</div>
     ${ms.length ? `<div class="list">${rows}</div><p class="small muted mt">* qualification aux tirs au but</p>` : '<div class="empty">Aucun match.</div>'}`;
 }
 
@@ -43,9 +43,13 @@ function tableHTML(S, rows, opts = {}) {
     const c = S.clubs[r.c];
     let z = '';
     if (opts.zones) {
-      if (opts.level === 1 && i < 3) z = 'zone-c';
-      else if (opts.level === 2 && i < 3) z = 'zone-p';
-      else if (opts.level === 1 && i >= n - 3) z = 'zone-r';
+      const C = opts.C || {};
+      const down = C.down || 3, up = C.up || 3, eu = C.conti || 3;
+      if (opts.level === 1 && i < eu) z = 'zone-c';
+      else if (opts.level === 1 && i >= n - down) z = 'zone-r';
+      else if (opts.level === 1 && C.po === 'barrage' && i === n - down - 1) z = 'zone-b';
+      else if (opts.level === 2 && i < up) z = 'zone-p';
+      else if (opts.level === 2 && ((C.po === 'playoff' && i < 6) || (C.po === 'barrage' && i === up))) z = 'zone-b';
     }
     if (opts.group && i < 2) z = 'zone-c';
     return `<tr class="click ${z} ${r.c === S.user ? 'me' : ''}" data-a="clubView" data-id="${c.id}"><td>${i + 1}</td><td><span class="clubc">${crest(c, 'sm')}<span>${esc(c.name)}</span></span></td><td class="n">${r.p}</td><td class="n">${r.w}</td><td class="n">${r.d}</td><td class="n">${r.l}</td><td class="n">${r.gf}</td><td class="n">${r.ga}</td><td class="n">${r.gf - r.ga > 0 ? '+' : ''}${r.gf - r.ga}</td><td class="n"><b>${r.pts}</b></td><td><span class="form">${r.f.split('').map((x) => `<i class="${x}">${x}</i>`).join('')}</span></td></tr>`;
@@ -64,14 +68,18 @@ function matchLine(S, m) {
 function compsScreen() {
   const S = G.S;
   const f = ui.f.cp || (ui.f.cp = { tab: 'league', cc: S.user ? S.clubs[S.user].country : 'FR', lvl: S.user ? S.comps[S.clubs[S.user].league].level : 1, rd: null, stat: 'gls' });
-  const tabs = [['league', 'Championnats'], ['results', 'Résultats'], ['cup', 'Coupes'], ['conti', CONTI_NAME], ['stats', 'Statistiques'], ['hist', 'Palmarès']];
+  const tabs = [['league', 'Championnats'], ['results', 'Résultats'], ['cup', 'Coupes'], ['conti', contiName(G.S)], ['stats', 'Statistiques'], ['hist', 'Palmarès']];
   const countrySel = `<div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${f.cc === C.code ? 'on' : ''}" data-a="cpCountry" data-c="${C.code}">${NATIONS[C.code].flag} ${C.name}</button>`).join('')}</div>`;
   const lvlSel = `<div class="seg mb"><button class="${f.lvl === 1 ? 'on' : ''}" data-a="cpLvl" data-l="1">${esc(S.comps[f.cc + '1'].name)}</button><button class="${f.lvl === 2 ? 'on' : ''}" data-a="cpLvl" data-l="2">${esc(S.comps[f.cc + '2'].name)}</button></div>`;
   let body = '';
   if (f.tab === 'league') {
     const comp = S.comps[f.cc + f.lvl];
-    body = `${countrySel}${lvlSel}<div class="card" style="padding:6px">${tableHTML(S, leagueTable(S, comp), { zones: true, level: comp.level })}</div>
-      <p class="small muted mt">${comp.level === 1 ? '<span class="chip lime">■</span> Coupe des Étoiles (top 3 + meilleur 4e) · <span class="chip red">■</span> Relégation' : '<span class="chip blue">■</span> Montée en première division'}</p>`;
+    const C = LEAGUE_COUNTRIES.find((x) => x.code === f.cc) || {};
+    const legend = comp.level === 1
+      ? `<span class="chip lime">■</span> ${esc(contiName(S))} (top ${C.conti || 3}${(C.conti || 3) * 5 < 16 ? ' + meilleur suivant' : ''})${C.po === 'barrage' ? ' · <span class="chip orange">■</span> Barrage contre le 3e de ' + esc(C.d2) : ''} · <span class="chip red">■</span> Relégation`
+      : `<span class="chip blue">■</span> Montée directe${C.po === 'playoff' ? ' · <span class="chip orange">■</span> Barrages d\'accession (3e à 6e)' : C.po === 'barrage' ? ' · <span class="chip orange">■</span> Barrage contre le 16e de ' + esc(C.d1) : ''}`;
+    body = `${countrySel}${lvlSel}<div class="card" style="padding:6px">${tableHTML(S, leagueTable(S, comp), { zones: true, level: comp.level, C })}</div>
+      <p class="small muted mt">${legend}</p>`;
   } else if (f.tab === 'results') {
     const comp = S.comps[f.cc + f.lvl];
     const all = Object.values(S.matches).filter((m) => m.c === comp.id);
@@ -87,7 +95,7 @@ function compsScreen() {
   } else if (f.tab === 'conti') {
     const c = S.comps.CONT;
     const ko = c.ko.slice().reverse().filter((st) => st.mids.length);
-    body = `<h2 class="mb">${CONTI_NAME}${c.winner ? ` · 🏆 ${esc(S.clubs[c.winner].name)}` : ''}</h2>
+    body = `<h2 class="mb">${contiName(G.S)}${c.winner ? ` · 🏆 ${esc(S.clubs[c.winner].name)}` : ''}</h2>
       ${ko.map((st) => `<div class="card"><div class="ttl"><h3>${st.label}</h3><span class="small muted">${fmtDate(st.day, 'wdm')}</span></div><div class="list">${st.mids.map((id) => matchLine(S, S.matches[id])).join('')}</div></div>`).join('')}
       <div class="grid2 mt">${c.groups.map((g) => `<div class="card" style="padding:6px"><h3 style="padding:8px">Groupe ${g.n}</h3>${tableHTML(S, sortRows(Object.values(g.table), S), { group: true })}</div>`).join('')}</div>`;
   } else if (f.tab === 'stats') {
@@ -107,7 +115,7 @@ function compsScreen() {
     body = S.history.length ? S.history.map((h) => `<div class="card"><div class="ttl"><h3>Saison ${h.s}-${(h.s + 1) % 100}</h3>${h.gold ? `<span class="chip gold">⭐ Tactico d'Or : ${esc(h.gold.n)}</span>` : ''}</div>
       <div class="list">${h.leagues.map((l) => { const c = S.clubs[l.champ]; return `<button class="li" data-a="clubView" data-id="${c.id}">${crest(c, 'sm')}<span class="grow"><span class="nm">${esc(c.name)}</span><span class="meta">Champion · ${esc(l.name)}${l.awards[0] ? ` · buteur : ${esc(l.awards[0].n)} (${esc(l.awards[0].v)})` : ''}</span></span>${ICON.trophy}</button>`; }).join('')}
       ${h.cups.filter((c) => c.winner).map((c) => { const w = S.clubs[c.winner]; return `<button class="li" data-a="clubView" data-id="${w.id}">${crest(w, 'sm')}<span class="grow"><span class="nm">${esc(w.name)}</span><span class="meta">${esc(c.name)}</span></span></button>`; }).join('')}
-      ${h.conti ? `<button class="li" data-a="clubView" data-id="${h.conti}">${crest(S.clubs[h.conti], 'sm')}<span class="grow"><span class="nm">${esc(S.clubs[h.conti].name)}</span><span class="meta">${CONTI_NAME}</span></span><span class="chip gold">🏆</span></button>` : ''}</div></div>`).join('') : '<div class="empty">Le palmarès se remplira à la fin de la première saison.</div>';
+      ${h.conti ? `<button class="li" data-a="clubView" data-id="${h.conti}">${crest(S.clubs[h.conti], 'sm')}<span class="grow"><span class="nm">${esc(S.clubs[h.conti].name)}</span><span class="meta">${contiName(G.S)}</span></span><span class="chip gold">🏆</span></button>` : ''}</div></div>`).join('') : '<div class="empty">Le palmarès se remplira à la fin de la première saison.</div>';
   }
   return `<div class="ph"><div><h1>Compétitions</h1></div></div><div class="tabs">${tabs.map(([k, l]) => `<button class="tab ${f.tab === k ? 'on' : ''}" data-a="cpTab" data-k="${k}">${l}</button>`).join('')}</div>${body}`;
 }

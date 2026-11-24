@@ -61,8 +61,8 @@ export function setBudgets(state, club) {
 }
 
 export const PRIZE = {
-  league1: (pos) => Math.round((19 - pos) * 0.5e6),
-  league2: (pos) => Math.round((19 - pos) * 0.12e6),
+  league1: (pos, n = 18) => Math.round((n + 1 - pos) * 0.5e6),
+  league2: (pos, n = 18) => Math.round((n + 1 - pos) * 0.12e6),
   cupRound: [0.1e6, 0.2e6, 0.4e6, 0.8e6, 1.5e6, 3e6],
   cupWin: 5e6,
   contiGroup: 12e6, contiWin: 2.5e6, contiDraw: 0.8e6, contiQF: 6e6, contiSF: 9e6, contiF: 14e6, contiChamp: 20e6,

@@ -5,23 +5,33 @@ import { addMsg, addNews } from './messages.js';
 import { makeName } from './player.js';
 import { autoLineup, makeTactics, refreshClubStrength } from './team.js';
 import { setBudgets } from './finance.js';
+import { LEAGUE_COUNTRIES } from './constants.js';
 
 export function computeObjective(state, club) {
   const comp = state.comps[club.league];
+  const n = comp.clubs.length;
+  const C = LEAGUE_COUNTRIES.find((c) => c.code === club.country) || {};
   const ranked = comp.clubs.slice().sort((a, b) => (state.clubs[b].str || 0) - (state.clubs[a].str || 0));
   const r = ranked.indexOf(club.id) + 1;
+  const safe = n - (C.down || 3) - (C.po === 'barrage' ? 1 : 0);
   if (comp.level === 1) {
+    const eu = C.conti || 3;
     if (r <= 1) return { key: 'title', label: 'Remporter le championnat', target: 1 };
-    if (r <= 3) return { key: 'podium', label: 'Finir sur le podium (qualification européenne)', target: 3 };
-    if (r <= 6) return { key: 'top6', label: 'Finir dans le top 6', target: 6 };
-    if (r <= 10) return { key: 'top10', label: 'Finir dans le top 10', target: 10 };
-    if (r <= 14) return { key: 'top14', label: 'Finir dans le top 14', target: 14 };
-    return { key: 'stay', label: 'Assurer le maintien', target: 15 };
+    if (r <= eu) return { key: 'podium', label: `Finir dans le top ${eu} (qualification européenne)`, target: eu };
+    const t6 = Math.round(n / 3);
+    if (r <= t6) return { key: 'top6', label: `Finir dans le top ${t6}`, target: t6 };
+    const half = Math.floor(n / 2);
+    if (r <= half) return { key: 'top10', label: `Finir dans la première moitié (top ${half})`, target: half };
+    if (r <= n - 6) return { key: 'top14', label: `Finir dans le top ${n - 4}`, target: n - 4 };
+    return { key: 'stay', label: 'Assurer le maintien', target: safe };
   }
-  if (r <= 3) return { key: 'promo', label: 'Monter en première division (top 3)', target: 3 };
-  if (r <= 7) return { key: 'top6', label: 'Jouer la montée (top 6)', target: 6 };
-  if (r <= 12) return { key: 'top12', label: 'Finir dans le top 12', target: 12 };
-  return { key: 'stay', label: 'Assurer le maintien', target: 15 };
+  const upN = (C.up || 3);
+  const poN = C.po === 'playoff' ? 6 : C.po === 'barrage' ? upN + 1 : upN;
+  if (r <= upN) return { key: 'promo', label: `Monter directement (top ${upN})`, target: upN };
+  if (r <= poN + 1) return { key: 'top6', label: poN > upN ? `Jouer la montée (top ${poN})` : `Jouer la montée (top ${Math.round(n / 3)})`, target: poN > upN ? poN : Math.round(n / 3) };
+  const half = Math.round(n * 2 / 3);
+  if (r <= half) return { key: 'top12', label: `Finir dans le top ${half}`, target: half };
+  return { key: 'stay', label: 'Assurer le maintien', target: n - 3 };
 }
 
 export function setObjectives(state) {

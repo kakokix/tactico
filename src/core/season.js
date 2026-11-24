@@ -1,7 +1,7 @@
 // Fin de saison : classements finaux, récompenses, montées, contrats, nouvelle saison.
 import { R, clamp } from './rng.js';
-import { LEAGUE_COUNTRIES, RELEGATION } from './constants.js';
-import { leagueTable, contiQualifiers, scheduleLeague, scheduleCup, scheduleConti, rebuildIndexes, newRow } from './competitions.js';
+import { LEAGUE_COUNTRIES } from './constants.js';
+import { leagueTable, contiQualifiers, scheduleLeague, scheduleCup, scheduleConti, rebuildIndexes, newRow, maxRoundsOf } from './competitions.js';
 import { seasonDates } from './dates.js';
 import { addFin, PRIZE, setBudgets } from './finance.js';
 import { newSeasonStats, pname, avgRating, playerValue } from './player.js';
@@ -18,11 +18,12 @@ function leagueAwards(state, compId) {
   const comp = state.comps[compId];
   const set = new Set(comp.clubs);
   const ps = Object.values(state.players).filter((p) => p.club && set.has(p.club) && !p.youth);
-  const scorer = ps.slice().sort((a, b) => b.st.gls - a.st.gls || a.st.apps - b.st.apps)[0];
+  const lg = (p) => p.st.lg || 0;
+  const scorer = ps.slice().sort((a, b) => lg(b) - lg(a) || a.st.apps - b.st.apps)[0];
   const best = ps.filter((p) => p.st.apps >= 20).sort((a, b) => avgRating(b) - avgRating(a))[0];
   const young = ps.filter((p) => p.st.apps >= 12 && p.age <= 21).sort((a, b) => avgRating(b) - avgRating(a))[0];
   const out = [];
-  if (scorer) out.push({ k: 'Meilleur buteur', p: scorer.id, n: pname(scorer), c: scorer.club, v: `${scorer.st.gls} buts` });
+  if (scorer) out.push({ k: 'Meilleur buteur', p: scorer.id, n: pname(scorer), c: scorer.club, v: `${lg(scorer)} buts en championnat` });
   if (best) out.push({ k: 'Joueur de la saison', p: best.id, n: pname(best), c: best.club, v: `note ${avgRating(best).toFixed(2)}` });
   if (young) out.push({ k: 'Meilleur jeune', p: young.id, n: pname(young), c: young.club, v: `note ${avgRating(young).toFixed(2)}` });
   return out;
@@ -47,6 +48,43 @@ function regenFill(state, club, target) {
   }
 }
 
+// Match de barrage simulé (force des clubs + avantage du terrain)
+function simTie(state, h, a, neutral) {
+  const sh = state.clubs[h].str || 60, sa = state.clubs[a].str || 60;
+  const pH = 1 / (1 + Math.exp(-((sh - sa) + (neutral ? 0 : 1.5)) / 4.2));
+  const hw = R.chance(pH);
+  const wg = R.weighted([1, 2, 3], [5, 4, 1]);
+  const lg = R.int(0, wg - 1);
+  const pens = R.chance(0.18);
+  const sc = pens ? (() => { const g = R.int(0, 2); return `${g}-${g}, t.a.b.`; })() : hw ? `${wg}-${lg}` : `${lg}-${wg}`;
+  return { w: hw ? h : a, l: hw ? a : h, sc };
+}
+
+// Montées et descentes d'un pays, avec barrages éventuels
+function promotions(state, C, finals, report) {
+  const t1 = finals[C.code + '1'].map((r) => r.c), t2 = finals[C.code + '2'].map((r) => r.c);
+  const nm = (id) => state.clubs[id].name;
+  const down = t1.slice(t1.length - (C.down || 3));
+  const up = t2.slice(0, C.up || 3);
+  const notes = [];
+  if (C.po === 'playoff' && t2.length >= 6) {
+    const s1 = simTie(state, t2[2], t2[5]), s2 = simTie(state, t2[3], t2[4]);
+    const f = simTie(state, s1.w, s2.w, true);
+    up.push(f.w);
+    notes.push(`Barrages de ${C.d2} : ${nm(s1.w)} élimine ${nm(s1.l)} (${s1.sc}), ${nm(s2.w)} élimine ${nm(s2.l)} (${s2.sc}). Finale : ${nm(f.w)} bat ${nm(f.l)} (${f.sc}) et monte.`);
+    for (const x of [s1, s2, f]) for (const id of [x.w, x.l]) if (id === state.user) addMsg(state, { from: 'Adjoint', kind: 'board', prio: 1, title: 'Barrages d\'accession', body: notes[notes.length - 1] });
+  } else if (C.po === 'barrage' && t1.length >= 3 && t2.length >= 3) {
+    const a = t1[t1.length - (C.down || 2) - 1], b = t2[(C.up || 2)];
+    const r = simTie(state, a, b, true);
+    if (r.w === b) { down.push(a); up.push(b); }
+    notes.push(`Barrage ${C.d1}/${C.d2} : ${nm(r.w)} bat ${nm(r.l)} (${r.sc}) et ${r.w === a ? `reste en ${C.d1}` : `monte en ${C.d1}`}.`);
+    if (a === state.user || b === state.user) addMsg(state, { from: 'Adjoint', kind: 'board', prio: 1, title: 'Barrage', body: notes[0] });
+  }
+  for (const n of notes) addNews(state, n, 'league');
+  if (report) (report.po ||= []).push(...notes);
+  return { up, down };
+}
+
 export function endSeason(state, nt) {
   const Y = state.season;
   const report = { s: Y, leagues: [], cups: [], conti: null, awards: [], user: null, gold: null };
@@ -62,7 +100,7 @@ export function endSeason(state, nt) {
     const comp = state.comps[cid];
     rows.forEach((r, i) => {
       const club = state.clubs[r.c], pos = i + 1;
-      addFin(club, 'in', 'Primes', comp.level === 1 ? PRIZE.league1(pos) : PRIZE.league2(pos));
+      addFin(club, 'in', 'Primes', comp.level === 1 ? PRIZE.league1(pos, rows.length) : PRIZE.league2(pos, rows.length));
       club.hist.unshift({ s: Y, l: cid, ln: comp.name, pos, pts: r.pts, w: r.w, d: r.d, lo: r.l, gf: r.gf, ga: r.ga });
       if (club.hist.length > 25) club.hist.length = 25;
     });
@@ -90,6 +128,10 @@ export function endSeason(state, nt) {
     addNews(state, `⭐ ${pname(p)} (${state.clubs[p.club].name}) remporte le Tactico d'Or ${Y + 1} !`, 'award');
   }
 
+  // Montées, descentes et barrages (décidés avant le bilan de l'entraîneur)
+  const moves = {};
+  for (const C of LEAGUE_COUNTRIES) moves[C.code] = promotions(state, C, finals, report);
+
   // Bilan de l'entraîneur
   if (state.user) {
     const club = state.clubs[state.user];
@@ -106,8 +148,9 @@ export function endSeason(state, nt) {
       if (comp.level === 1) { mgr.career.titles1++; repD += 10; } else { mgr.career.titles2++; repD += 4; }
       userTrophy(state, comp.name, comp.level === 1 ? 'league' : 'league2');
     }
-    const promoted = comp.level === 2 && pos <= RELEGATION;
-    const relegated = comp.level === 1 && pos > 18 - RELEGATION;
+    const mv = moves[club.country];
+    const promoted = mv.up.includes(club.id);
+    const relegated = mv.down.includes(club.id);
     if (promoted) { mgr.career.promos++; repD += 3; }
     if (relegated) repD -= 4;
     mgr.rep = clamp(mgr.rep + repD, 1, 100);
@@ -196,8 +239,7 @@ export function endSeason(state, nt) {
   // Montées / descentes
   for (const C of LEAGUE_COUNTRIES) {
     const c1 = state.comps[C.code + '1'], c2 = state.comps[C.code + '2'];
-    const down = finals[c1.id].slice(-RELEGATION).map((r) => r.c);
-    const up = finals[c2.id].slice(0, RELEGATION).map((r) => r.c);
+    const { up, down } = moves[C.code];
     c1.clubs = c1.clubs.filter((x) => !down.includes(x)).concat(up);
     c2.clubs = c2.clubs.filter((x) => !up.includes(x)).concat(down);
     for (const id of up) { const k = state.clubs[id]; k.league = c1.id; k.rep = clamp(Math.max(k.rep + 3, 52), 1, 99); }
@@ -215,7 +257,7 @@ export function endSeason(state, nt) {
 
   // ---------- Nouvelle saison ----------
   state.season = Y + 1;
-  state.sd = seasonDates(Y + 1);
+  state.sd = seasonDates(Y + 1, maxRoundsOf(state));
   state.day = state.sd.start;
   state.matches = {};
   state.byDay = {};

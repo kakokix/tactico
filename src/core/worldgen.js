@@ -1,12 +1,13 @@
 // Génération du monde : pays, clubs, joueurs, saison 1.
 import { R, clamp } from './rng.js';
-import { VERSION, LEAGUE_COUNTRIES, CLUBS_PER_DIV } from './constants.js';
+import { VERSION, LEAGUE_COUNTRIES, CLUBS_PER_DIV, applyWorld } from './constants.js';
+import { REAL_DATA, REAL_COUNTRIES, REAL_CONTI, parseClub } from '../data/real/index.js';
 import { CITIES, CLUB_PATTERNS, STADIUM_PATTERNS, COLORS } from '../data/clubs.js';
-import { NATIONS, FOREIGN_MIX } from '../data/names.js';
-import { createPlayer, baseWage, playerValue, makeName, roundWage } from './player.js';
+import { NATIONS, FOREIGN_MIX, CORE_NATIONS } from '../data/names.js';
+import { createPlayer, createRealPlayer, baseWage, playerValue, makeName, roundWage } from './player.js';
 import { dayOf, seasonDates } from './dates.js';
 import { projectRevenue, setBudgets, wageBill } from './finance.js';
-import { scheduleLeague, scheduleCup, scheduleConti, contiQualifiers, rebuildIndexes } from './competitions.js';
+import { scheduleLeague, scheduleCup, scheduleConti, contiQualifiers, rebuildIndexes, maxRoundsOf } from './competitions.js';
 import { bestFormation, makeTactics, refreshClubStrength, autoLineup } from './team.js';
 import { setObjectives } from './board.js';
 
@@ -130,7 +131,7 @@ export function setInitialWages(state, club) {
 export function genFreeAgent(state, ovrLo = 45, ovrHi = 70) {
   const age = R.int(20, 34);
   const pos = R.pick(TEMPLATE);
-  const nat = R.pick(Object.keys(NATIONS));
+  const nat = R.pick(CORE_NATIONS);
   const p = createPlayer(state, { nat, pos, ovr: R.int(ovrLo, ovrHi), age });
   p.club = null;
   p.until = state.season;
@@ -148,15 +149,20 @@ export function initClubTactics(state, club) {
   refreshClubStrength(state, club);
 }
 
-export function generateWorld(seed) {
-  R.seed(seed);
-  const Y = 2026;
-  const state = {
+function baseState(seed, Y) {
+  return {
     v: VERSION, seed, season: Y, day: dayOf(Y, 7, 1), nextId: 1, nextMid: 1,
     clubs: {}, players: {}, comps: {}, matches: {}, byDay: {},
     free: [], inbox: [], news: [], transfers: [], history: [], awards: [],
     user: null, mgr: null, flags: {},
   };
+}
+
+export function generateWorld(seed) {
+  R.seed(seed);
+  const Y = 2026;
+  const state = baseState(seed, Y);
+  applyWorld(state);
   state.sd = seasonDates(Y);
   const usedShort = new Set();
   for (const C of LEAGUE_COUNTRIES) {
@@ -194,3 +200,108 @@ export function generateWorld(seed) {
 }
 
 export { wageBill };
+
+// ---------- Monde réel 2026-27 ----------
+const EQUIV = { MD: ['AD'], AD: ['MD'], MG: ['AG'], AG: ['MG'], MOC: ['MC'], MC: ['MOC', 'MDC'], MDC: ['MC'] };
+
+function makeRealClub(state, C, level, d) {
+  const id = 'c' + (state.nextId++).toString(36);
+  const rep = d.rep;
+  const fac = () => clamp(Math.round(1 + (rep - 35) / 15 + R.range(-0.6, 0.6)), 1, 5);
+  const mgr = makeName(C.code);
+  let h = 0;
+  for (const ch of d.abbr + d.name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const club = {
+    id, name: d.name, short: d.short, abbr: d.abbr, city: d.city, country: C.code, league: C.code + level, rep,
+    colors: d.colors.slice(), crest: { shape: h % 4, pat: (h >> 3) % 8 },
+    stadium: { name: d.stadium, cap: d.cap },
+    fac: { train: fac(), youth: fac(), med: fac() },
+    balance: 0, tBudget: 0, wBudget: 0,
+    philo: R.pick(['balanced', 'balanced', 'possession', 'direct', 'counter', 'press', 'wing']),
+    pref: null, tactics: null, lineup: [], bench: [],
+    squad: [], youth: [], coh: R.int(55, 80),
+    mgr: { fn: mgr.fn, ln: mgr.ln, nat: C.code, since: state.season }, vacant: false,
+    fin: { in: {}, out: {} }, hist: [], trophies: [], obj: null, str: 0,
+    training: { focus: 'eq', int: 1 }, penTaker: null,
+  };
+  state.clubs[id] = club;
+  return club;
+}
+
+// Effectif : joueurs réels, puis joueurs générés pour compléter les postes manquants
+function genRealSquad(state, club, d) {
+  const lvlDiv = state.comps[club.league].level;
+  for (const r of d.players) {
+    const p = createRealPlayer(state, r, club.id);
+    p.until = state.season + (r.age <= 22 ? R.int(3, 5) : r.age >= 32 ? R.int(1, 2) : R.int(2, 5));
+    club.squad.push(p.id);
+  }
+  const used = new Array(TEMPLATE.length).fill(false);
+  for (const r of d.players) {
+    let i = TEMPLATE.findIndex((pos, k) => !used[k] && pos === r.pos);
+    if (i < 0) i = TEMPLATE.findIndex((pos, k) => !used[k] && (EQUIV[r.pos] || []).includes(pos));
+    if (i >= 0) used[i] = true;
+  }
+  const top = d.players.map((p) => p.ovr).sort((a, b) => b - a).slice(0, 11);
+  const level = d.lvl || (top.length ? top.reduce((s, x) => s + x, 0) / top.length : 65);
+  // Postes de titulaire sans joueur réel : remplis au niveau d'un titulaire si l'effectif réel est court
+  const fewReal = d.players.length < 16;
+  TEMPLATE.forEach((pos, i) => {
+    if (used[i] || club.squad.length >= 25) return;
+    const starter = fewReal && STARTERS.has(i);
+    let age, ovr;
+    if (starter) { age = clamp(Math.round(R.normal(27, 3.3)), 19, 35); ovr = level + R.normal(0, 2.4); }
+    else if (R.chance(0.4)) { age = R.int(17, 21); ovr = level - R.range(7, 14); }
+    else { age = clamp(Math.round(R.normal(26, 4)), 19, 36); ovr = level - (d.players.length >= 16 ? R.range(7, 12) : R.range(4, 9)); }
+    if (i === 2) ovr = level - R.range(10, 16);
+    ovr = clamp(Math.round(ovr), 40, 90);
+    const p = createPlayer(state, { nat: pickNat(club.country, lvlDiv), pos, ovr, age, club: club.id });
+    p.until = state.season + (age <= 22 ? R.int(2, 5) : age >= 32 ? R.int(1, 2) : R.int(1, 5));
+    club.squad.push(p.id);
+  });
+  for (let k = 0; k < R.int(3, 5); k++) genYouth(state, club, R.int(15, 17));
+  assignNumbers(state, club);
+}
+
+export function generateRealWorld(seed) {
+  R.seed(seed);
+  const Y = 2026;
+  const state = baseState(seed, Y);
+  state.mode = 'real';
+  state.countries = REAL_COUNTRIES.map((c) => ({ ...c }));
+  state.contiName = REAL_CONTI;
+  applyWorld(state);
+  const data = new Map();
+  for (const C of LEAGUE_COUNTRIES) {
+    const src = REAL_DATA[C.code];
+    for (const level of [1, 2]) {
+      const comp = { id: C.code + level, type: 'league', country: C.code, level, name: level === 1 ? C.d1 : C.d2, clubs: [] };
+      state.comps[comp.id] = comp;
+      for (const txt of src[level === 1 ? 'd1' : 'd2']) {
+        const d = parseClub(txt);
+        const club = makeRealClub(state, C, level, d);
+        data.set(club.id, d);
+        comp.clubs.push(club.id);
+      }
+    }
+    state.comps[C.code + 'C'] = { id: C.code + 'C', type: 'cup', country: C.code, name: C.cup, clubs: [] };
+  }
+  state.sd = seasonDates(Y, maxRoundsOf(state));
+  for (const club of Object.values(state.clubs)) {
+    genRealSquad(state, club, data.get(club.id));
+    setInitialWages(state, club);
+    initClubTactics(state, club);
+    club.balance = Math.round(projectRevenue(state, club) * R.range(0.15, 0.5) / 100000) * 100000;
+    setBudgets(state, club);
+  }
+  for (let i = 0; i < 160; i++) genFreeAgent(state);
+  for (const C of LEAGUE_COUNTRIES) {
+    scheduleLeague(state, state.comps[C.code + '1']);
+    scheduleLeague(state, state.comps[C.code + '2']);
+    scheduleCup(state, state.comps[C.code + 'C']);
+  }
+  scheduleConti(state, contiQualifiers(state, true));
+  rebuildIndexes(state);
+  setObjectives(state);
+  return state;
+}

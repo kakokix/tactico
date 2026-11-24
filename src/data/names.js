@@ -90,6 +90,30 @@ export const NATIONS = {
   JP: { name: 'Japon', flag: '🇯🇵', f: JP_F, l: JP_L },
   KR: { name: 'Corée du Sud', flag: '🇰🇷', f: KR_F, l: KR_L },
 };
+// Nationalités supplémentaires (joueurs réels). Les listes de noms servent seulement de secours.
+const EXTRA = {
+  EC: ['Équateur', '🇪🇨', AR_F, CO_L], SCO: ['Écosse', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', EN_F, EN_L], WAL: ['Pays de Galles', '🏴󠁧󠁢󠁷󠁬󠁳󠁿', EN_F, EN_L],
+  NIR: ['Irlande du Nord', '🇬🇧', EN_F, EN_L], IE: ['Irlande', '🇮🇪', EN_F, EN_L], AT: ['Autriche', '🇦🇹', DE_F, DE_L],
+  CZ: ['Tchéquie', '🇨🇿', PL_F, PL_L], SK: ['Slovaquie', '🇸🇰', PL_F, PL_L], SI: ['Slovénie', '🇸🇮', HR_F, HR_L],
+  HU: ['Hongrie', '🇭🇺', HR_F, HR_L], UA: ['Ukraine', '🇺🇦', PL_F, PL_L], GE: ['Géorgie', '🇬🇪', RS_F, RS_L],
+  GR: ['Grèce', '🇬🇷', RS_F, RS_L], AL: ['Albanie', '🇦🇱', HR_F, HR_L], XK: ['Kosovo', '🇽🇰', HR_F, HR_L],
+  BA: ['Bosnie-Herzégovine', '🇧🇦', RS_F, RS_L], ME: ['Monténégro', '🇲🇪', RS_F, RS_L], MK: ['Macédoine du Nord', '🇲🇰', RS_F, RS_L],
+  IS: ['Islande', '🇮🇸', SC_F, NO_L], FI: ['Finlande', '🇫🇮', SC_F, SE_L], EE: ['Estonie', '🇪🇪', SC_F, SE_L],
+  LT: ['Lituanie', '🇱🇹', PL_F, PL_L], RO: ['Roumanie', '🇷🇴', RS_F, RS_L], BG: ['Bulgarie', '🇧🇬', RS_F, RS_L],
+  RU: ['Russie', '🇷🇺', PL_F, PL_L], CD: ['RD Congo', '🇨🇩', AF_F, CM_L], GN: ['Guinée', '🇬🇳', AF_F, ML_L],
+  BF: ['Burkina Faso', '🇧🇫', AF_F, ML_L], GM: ['Gambie', '🇬🇲', AF_F, SN_L], GA: ['Gabon', '🇬🇦', AF_F, CM_L],
+  GW: ['Guinée-Bissau', '🇬🇼', AF_F, SN_L], BJ: ['Bénin', '🇧🇯', AF_F, CI_L], MZ: ['Mozambique', '🇲🇿', AF_F, CM_L],
+  ZW: ['Zimbabwe', '🇿🇼', NG_F, NG_L], ZM: ['Zambie', '🇿🇲', NG_F, NG_L], AO: ['Angola', '🇦🇴', AF_F, CM_L],
+  CG: ['Congo', '🇨🇬', AF_F, CM_L], GQ: ['Guinée équatoriale', '🇬🇶', AF_F, CM_L], CV: ['Cap-Vert', '🇨🇻', PT_F, PT_L],
+  EG: ['Égypte', '🇪🇬', MA_F, MA_L], JO: ['Jordanie', '🇯🇴', MA_F, MA_L], SA: ['Arabie saoudite', '🇸🇦', MA_F, MA_L],
+  IL: ['Israël', '🇮🇱', EN_F, EN_L], UZ: ['Ouzbékistan', '🇺🇿', TR_F, TR_L], ID: ['Indonésie', '🇮🇩', NL_F, NL_L],
+  AU: ['Australie', '🇦🇺', EN_F, EN_L], NZ: ['Nouvelle-Zélande', '🇳🇿', EN_F, EN_L], CA: ['Canada', '🇨🇦', US_F, US_L],
+  MX: ['Mexique', '🇲🇽', ES_F, AR_L], JM: ['Jamaïque', '🇯🇲', EN_F, EN_L], HN: ['Honduras', '🇭🇳', ES_F, AR_L],
+  PA: ['Panama', '🇵🇦', ES_F, CO_L], PY: ['Paraguay', '🇵🇾', AR_F, AR_L], VE: ['Venezuela', '🇻🇪', ES_F, CO_L],
+  CL: ['Chili', '🇨🇱', AR_F, AR_L], ZA: ['Afrique du Sud', '🇿🇦', NG_F, NG_L], TG: ['Togo', '🇹🇬', AF_F, CI_L],
+};
+export const CORE_NATIONS = Object.keys(NATIONS);
+for (const [k, [name, flag, f, l]] of Object.entries(EXTRA)) NATIONS[k] = { name, flag, f, l };
 export const NATION_CODES = Object.keys(NATIONS);
 
 // Répartition des joueurs étrangers selon le pays du club

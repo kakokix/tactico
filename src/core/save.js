@@ -1,5 +1,6 @@
 // Sauvegarde locale (IndexedDB, sinon localStorage, sinon mémoire).
 import { rebuildIndexes } from './competitions.js';
+import { applyWorld } from './constants.js';
 
 const DB = 'tactico', STORE = 'saves', KEY = 'career';
 let memory = null;
@@ -44,15 +45,18 @@ async function idbDel() {
   });
 }
 
+// Les décimales au-delà du millième ne servent à rien et alourdissent la sauvegarde
+const round3 = (k, v) => (typeof v === 'number' && !Number.isInteger(v) ? Math.round(v * 1000) / 1000 : v);
 export function serialize(state) {
   const { byDay, ...rest } = state;
-  return JSON.stringify(rest);
+  return JSON.stringify(rest, round3);
 }
 export function deserialize(json) {
   const s = JSON.parse(json);
   if (!s || !s.clubs || !s.players) throw new Error('Sauvegarde invalide');
   rebuildIndexes(s);
   s.flags = s.flags || {};
+  applyWorld(s);
   return s;
 }
 

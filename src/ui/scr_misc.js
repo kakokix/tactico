@@ -1,7 +1,7 @@
 // Écrans : finances, entraînement, club, carrière, classement mondial, options, bilan de saison.
 import { G, ui, register, render, go, openModal, closeModal, modalHead, toast, persist, storageMode } from './app.js';
 import { ICON, esc, crest, flag, money, ovrB, posB, stars, natName } from './util.js';
-import { TRAINING_FOCUS, TRAINING_INTENSITY, LEAGUE_COUNTRIES, SCORE_RULES } from '../core/constants.js';
+import { TRAINING_FOCUS, TRAINING_INTENSITY, LEAGUE_COUNTRIES, SCORE_RULES, contiName } from '../core/constants.js';
 import { wageBill, projectRevenue, ticketPrice, FAC_NAMES, facUpgradeCost, stadiumExpandCost, addFin, tvMoney, commercial } from '../core/finance.js';
 import { pname } from '../core/player.js';
 import { confLabel, vacancies, jobChance, applyForJob, sackUser } from '../core/board.js';
@@ -99,12 +99,12 @@ function careerScreen() {
   const apps = m.apps || [];
   const club = S.user ? S.clubs[S.user] : null;
   const R_ = SCORE_RULES;
-  const parts = [['Victoires', c.w * R_.win], ['Nuls', c.d * R_.draw], ['Titres D1', c.titles1 * R_.title1], ['Titres D2', c.titles2 * R_.title2], ['Coupes', c.cups * R_.cup], ['Coupe des Étoiles', c.conti * R_.conti], ['Montées', c.promos * R_.promo], ['Objectifs atteints', c.objMet * R_.objMet], ['Objectifs dépassés', c.objEx * R_.objEx]].filter(([, v]) => v);
+  const parts = [['Victoires', c.w * R_.win], ['Nuls', c.d * R_.draw], ['Titres D1', c.titles1 * R_.title1], ['Titres D2', c.titles2 * R_.title2], ['Coupes', c.cups * R_.cup], [contiName(G.S), c.conti * R_.conti], ['Montées', c.promos * R_.promo], ['Objectifs atteints', c.objMet * R_.objMet], ['Objectifs dépassés', c.objEx * R_.objEx]].filter(([, v]) => v);
   return `<div class="ph"><div><h1>${flag(m.nat)} ${esc(m.name)}</h1><div class="sub">${club ? `Entraîneur de ${esc(club.name)}` : 'Sans club'} · réputation ${Math.round(m.rep)}/100 · ${c.seasons} saison(s) terminée(s)</div></div>${club ? `<button class="btn danger sm" data-a="resignAsk">Démissionner</button>` : ''}</div>
   <div class="kpis"><div class="kpi"><small>Score mondial</small><b style="color:var(--lime)">${score.toLocaleString('fr-FR')}</b></div><div class="kpi"><small>Matchs</small><b>${games}</b></div><div class="kpi"><small>Bilan</small><b>${c.w}V ${c.d}N ${c.l}D</b></div><div class="kpi"><small>% victoires</small><b>${games ? Math.round(c.w / games * 100) : 0}%</b></div><div class="kpi"><small>Trophées</small><b>${trophyCount(c)}</b></div><div class="kpi"><small>Licenciements</small><b>${c.sacked}</b></div></div>
   <div class="grid2 mt">
     <div class="card"><h3 class="mb">Calcul du score</h3>${parts.length ? parts.map(([k, v]) => `<div class="spread small" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${k}</span><b class="num">+${v.toLocaleString('fr-FR')}</b></div>`).join('') : '<p class="muted">Gagne des matchs pour marquer des points.</p>'}
-      <p class="small muted mt">Victoire ${R_.win} · nul ${R_.draw} · titre D1 ${R_.title1} · titre D2 ${R_.title2} · coupe ${R_.cup} · Coupe des Étoiles ${R_.conti} · montée ${R_.promo} · objectif atteint ${R_.objMet} (+${R_.objEx} s'il est dépassé).</p>
+      <p class="small muted mt">Victoire ${R_.win} · nul ${R_.draw} · titre D1 ${R_.title1} · titre D2 ${R_.title2} · coupe ${R_.cup} · ${esc(contiName(G.S))} ${R_.conti} · montée ${R_.promo} · objectif atteint ${R_.objMet} (+${R_.objEx} s'il est dépassé).</p>
       <button class="btn block mt" data-a="nav" data-s="world">${ICON.world} Voir le classement mondial</button></div>
     <div class="card"><h3 class="mb">Trophées</h3>${m.trophies.length ? m.trophies.slice().reverse().map((t) => `<div class="trophy">${ICON.trophy}<span class="grow"><b>${esc(t.n)}</b><br><span class="small muted">${esc(t.c)} · ${t.s}-${(t.s + 1) % 100}</span></span></div>`).join('') : '<p class="muted">Pas encore de trophée.</p>'}</div>
   </div>
@@ -178,7 +178,8 @@ function seasonModal(m) {
       <p class="small muted mt">Confiance du président : ${u.conf}% · réputation : ${u.rep}/100</p>${u.sacked ? '<div class="note warn mt">Le président a décidé de te licencier.</div>' : ''}</div>` : ''}
     ${r.gold ? `<div class="note mb">⭐ <b>Tactico d'Or :</b> ${esc(r.gold.n)} (${esc(S.clubs[r.gold.c]?.name || '')})</div>` : ''}
     <h3 class="mb">Champions</h3><div class="list mb">${d1.map((l) => { const c = S.clubs[l.champ]; return `<div class="li">${crest(c, 'sm')}<span class="grow"><span class="nm">${esc(c.name)}</span><span class="meta">${esc(l.name)}${l.awards[0] ? ` · meilleur buteur ${esc(l.awards[0].n)} (${esc(l.awards[0].v)})` : ''}</span></span>${ICON.trophy}</div>`; }).join('')}
-    ${r.conti ? `<div class="li">${crest(S.clubs[r.conti], 'sm')}<span class="grow"><span class="nm">${esc(S.clubs[r.conti].name)}</span><span class="meta">Coupe des Étoiles</span></span>🏆</div>` : ''}</div>
+    ${r.conti ? `<div class="li">${crest(S.clubs[r.conti], 'sm')}<span class="grow"><span class="nm">${esc(S.clubs[r.conti].name)}</span><span class="meta">${esc(contiName(S))}</span></span>🏆</div>` : ''}</div>
+    ${r.po && r.po.length ? `<h3 class="mb">Barrages</h3><div class="list mb">${r.po.map((t) => `<div class="li"><span class="grow small">${esc(t)}</span></div>`).join('')}</div>` : ''}
     <button class="btn pri block" data-a="close">Commencer la saison ${r.s + 1}-${(r.s + 2) % 100}</button>`;
 }
 

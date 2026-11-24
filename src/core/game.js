@@ -11,7 +11,7 @@ import { aiTransferDay, aiInterestInListed, aiRenewal, fmtMoney, aiFillFree, wag
 import { wageBill } from './finance.js';
 import { boardAfterMatch, boardMonthly, aiManagerChanges, fillVacancies, processApplications, spontaneousOffers, takeJob, computeObjective } from './board.js';
 import { genYouth } from './worldgen.js';
-import { TRAINING_FOCUS, FORMATIONS, LEAGUE_COUNTRIES } from './constants.js';
+import { TRAINING_FOCUS, FORMATIONS, LEAGUE_COUNTRIES, contiName } from './constants.js';
 import { endSeason } from './season.js';
 
 export function startCareer(state, { name, nat, clubId }) {
@@ -168,7 +168,7 @@ export function applyMatchResult(state, m, sim) {
       p.form = Math.round((p.form * 0.7 + r * 0.3) * 100) / 100;
       p.cond = Math.round(side.cond[pid] ?? p.cond);
       if (sim.motm === pid) p.st.motm++;
-      p.morale = clamp(p.morale + (res > 0 ? 4 : res < 0 ? -4 : 0) + (r >= 7.5 ? 2 : r < 5.5 ? -2 : 0), 5, 100);
+      p.morale = clamp(p.morale + (res > 0 ? 4 : res < 0 ? -4 : 0) + (r >= 7.6 ? 2 : r < 5.9 ? -2 : 0), 5, 100);
       if (side.yel[pid]) { const n = Math.min(side.yel[pid], 1); p.st.yc += n; p.yc += n; if (!side.reds.has(pid) && p.yc % 5 === 0) p.susp += 1; }
       if (side.reds.has(pid)) { p.st.rc++; p.susp += side.yel[pid] >= 2 ? 1 : R.int(1, 3); }
       if (ga === 0 && side.posOf[pid] === 'GB' && mins >= 60) p.st.cs++;
@@ -185,7 +185,7 @@ export function applyMatchResult(state, m, sim) {
   }
   for (const g of sim.goals) {
     const s = state.players[g.s];
-    if (s) { s.st.gls++; s.car.gls++; }
+    if (s) { s.st.gls++; s.car.gls++; if (comp.type === 'league') s.st.lg = (s.st.lg || 0) + 1; }
     const a = g.a ? state.players[g.a] : null;
     if (a) { a.st.ast++; a.car.ast++; }
   }
@@ -273,7 +273,7 @@ const notify = (state) => (type, d) => {
     const mine = st.mids.map((id) => state.matches[id]).find((m) => m.h === state.user || m.a === state.user);
     if (mine) {
       const opp = state.clubs[mine.h === state.user ? mine.a : mine.h];
-      addMsg(state, { from: 'Coupe des Étoiles', kind: 'draw', title: `Tirage : ${st.label}`, body: `Vous affronterez ${opp.name} le ${fmtDate(mine.d, 'wdm')}.`, cid: opp.id });
+      addMsg(state, { from: contiName(state), kind: 'draw', title: `Tirage : ${st.label}`, body: `Vous affronterez ${opp.name} le ${fmtDate(mine.d, 'wdm')}.`, cid: opp.id });
     }
   } else if (type === 'cupWin') {
     const w = state.clubs[d.club];
@@ -283,11 +283,11 @@ const notify = (state) => (type, d) => {
     if (w.id === state.user) userTrophy(state, d.cup.name, 'cup');
   } else if (type === 'contiWin') {
     const w = state.clubs[d.club];
-    addNews(state, `🏆 ${w.name} remporte la Coupe des Étoiles !`, 'trophy', { c: w.id });
-    w.trophies.push({ s: state.season, n: 'Coupe des Étoiles', k: 'conti' });
+    addNews(state, `🏆 ${w.name} remporte la ${contiName(state)} !`, 'trophy', { c: w.id });
+    w.trophies.push({ s: state.season, n: contiName(state), k: 'conti' });
     addFin(w, 'in', 'Primes', PRIZE.contiChamp);
     w.rep = Math.min(99, w.rep + 3);
-    if (w.id === state.user) userTrophy(state, 'Coupe des Étoiles', 'conti');
+    if (w.id === state.user) userTrophy(state, contiName(state), 'conti');
   }
 };
 
@@ -343,7 +343,7 @@ function weekly(state) {
         p.morale = Math.max(5, p.morale - 3);
         if (p.morale < 32 && !p.gripe) {
           p.gripe = true;
-          addMsg(state, { from: pname(p), kind: 'morale', pid: p.id, title: `${pname(p)} réclame du temps de jeu`, body: `« Coach, je joue trop peu. Je veux être titulaire, sinon je préfère partir. »\n\nSon moral est au plus bas (${Math.round(p.morale)}/100). Fais-le jouer, ou place-le sur la liste des transferts.` });
+          addMsg(state, { from: 'Agent du joueur', kind: 'morale', pid: p.id, title: `${pname(p)} réclame du temps de jeu`, body: `Son agent nous fait savoir qu'il estime ne pas jouer assez et qu'il envisage un départ s'il ne devient pas titulaire.\n\nSon moral est au plus bas (${Math.round(p.morale)}/100). Fais-le jouer, ou place-le sur la liste des transferts.` });
         }
       }
     }

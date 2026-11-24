@@ -1,6 +1,6 @@
 // Écrans : effectif, fiche joueur, tactique.
 import { G, ui, register, render, go, openModal, closeModal, modalHead, toast, persist, replaceModal } from './app.js';
-import { ICON, esc, crest, flag, money, ovrB, posB, rtB, condBar, attrClass, natName, inkOn, stars } from './util.js';
+import { ICON, esc, crest, flag, money, ovrB, posB, rtB, condBar, attrClass, natName, inkOn, stars, jersey, radar, posMap, colorDist } from './util.js';
 import { ATTR_GROUPS, ATTR_NAMES, A, POS_NAMES, POS_GROUP, FORMATIONS, FORMATION_LIST, MENTALITY, PRESSING, STYLE, WIDTH, DLINE } from '../core/constants.js';
 import { pname, pshort, ovrAt, avgRating, isAvailable } from '../core/player.js';
 import { autoLineup, lineupStrength, condFactor } from '../core/team.js';
@@ -58,6 +58,14 @@ export function potText(S, p) {
   return lo === hi ? `${lo}` : `${lo}-${hi}`;
 }
 
+// Profil du joueur sur six axes (moyennes d'attributs)
+function profileAxes(p) {
+  const v = (...k) => k.reduce((t, x) => t + p.attr[A[x]], 0) / k.length;
+  if (p.pos === 'GB') return [['Arrêts', v('arr')], ['Sorties', v('sor')], ['Placement', v('pla')], ['Jeu au pied', v('pas')], ['Mental', v('sgf')], ['Physique', v('pui', 'vit', 'end')]];
+  return [['Vitesse', v('vit')], ['Tir', v('fin', 'tir')], ['Passe', v('pas', 'vis', 'cen')], ['Dribble', v('dri', 'sgf')], ['Défense', v('tac', 'mar', 'pla')], ['Physique', v('pui', 'end', 'tet')]];
+}
+const barColorOf = (club) => { const c = club.colors.find((x) => colorDist(x, '#0f1d16') > 120) || '#c6f43d'; return c; };
+
 function playerModal(m) {
   const S = G.S;
   const p = S.players[m.id];
@@ -87,6 +95,7 @@ function playerModal(m) {
     <div class="row mb">${club ? `<button class="row" data-a="clubView" data-id="${club.id}" style="background:none;border:0;cursor:pointer;color:inherit">${crest(club, 'lg')}<span style="text-align:left"><b>${esc(club.name)}</b><br><span class="muted small">${p.youth ? 'Centre de formation' : 'N° ' + p.num}${p.loan ? ` · prêté par ${esc(owner?.name || '')}` : ''}</span></span></button>` : '<span class="chip">Joueur libre</span>'}<span class="grow"></span>${ovrB(p.ovr)}<span class="pot">Pot. ${potText(S, p)}</span></div>
     <div class="row wrap gap6 mb">${statusChips(S, p)}${p.inj > 0 ? `<span class="chip red">${esc(p.injName)}</span>` : ''}</div>
     <div class="kpis"><div class="kpi"><small>Valeur</small><b>${money(p.value)}</b></div><div class="kpi"><small>Salaire / sem.</small><b>${money(p.wage)}</b></div><div class="kpi"><small>Contrat</small><b>${p.club ? 'juin ' + p.until : '—'}</b></div>${p.club && !mine && !p.loan ? `<div class="kpi"><small>Prix demandé</small><b>${money(askingPrice(S, p))}</b></div>` : ''}<div class="kpi"><small>Fraîcheur</small><b>${Math.round(p.cond)}%</b></div><div class="kpi"><small>Moral</small><b>${Math.round(p.morale)}/100</b></div><div class="kpi"><small>Forme</small><b>${p.form.toFixed(1)}</b></div></div>
+    <div class="pviz mt">${radar(profileAxes(p), club ? barColorOf(club) : '#c6f43d')}${posMap(p.pos, p.alt)}</div>
     <div class="attrs mt">${attrs}</div>
     <div class="card flat mt"><div class="ttl"><h3>Saison ${S.season}-${(S.season + 1) % 100}</h3></div><div class="kpis"><div class="kpi"><small>Matchs</small><b>${p.st.apps}</b></div><div class="kpi"><small>Buts</small><b>${p.st.gls}</b></div><div class="kpi"><small>Passes déc.</small><b>${p.st.ast}</b></div><div class="kpi"><small>Note moy.</small><b>${p.st.apps ? avgRating(p).toFixed(2) : '–'}</b></div><div class="kpi"><small>Homme du match</small><b>${p.st.motm}</b></div><div class="kpi"><small>Cartons</small><b>${p.st.yc} J · ${p.st.rc} R</b></div></div>
       <p class="small muted mt">Carrière : ${p.car.apps} matchs · ${p.car.gls} buts · ${p.car.ast} passes décisives</p>
@@ -97,11 +106,6 @@ function playerModal(m) {
 
 // ---------- Tactique ----------
 const PITCH_LINES = `<svg class="lines" viewBox="0 0 68 100" preserveAspectRatio="none" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".4"><rect x="2" y="2" width="64" height="96"/><path d="M2 50h64"/><circle cx="34" cy="50" r="8"/><rect x="16" y="2" width="36" height="15"/><rect x="25" y="2" width="18" height="6"/><rect x="16" y="83" width="36" height="15"/><rect x="25" y="92" width="18" height="6"/></svg>`;
-
-function shirt(club) {
-  const c = club.colors[0];
-  return `background:${c};color:${inkOn(c)}`;
-}
 
 function tacticsScreen() {
   const S = G.S;
@@ -116,7 +120,7 @@ function tacticsScreen() {
     const p = S.players[club.lineup[i]];
     const bad = p && (!isAvailable(p) || p.club !== club.id);
     const rating = p ? ovrAt(p, s.pos) : 0;
-    return `<button class="tok ${sel === i ? 'sel' : ''} ${p ? '' : 'empty'} ${bad ? 'bad' : ''}" style="left:${s.x}%;top:${100 - s.y}%" data-a="slotSel" data-i="${i}"><span class="sh" style="${shirt(club)}">${p ? p.num : '+'}</span><span class="nm">${p ? esc(pshort(p)) : s.pos}</span><span class="sub">${p ? `${s.pos} · ${rating}${bad ? ' ⚠' : ''}` : ''}</span></button>`;
+    return `<button class="tok ${sel === i ? 'sel' : ''} ${p ? '' : 'empty'} ${bad ? 'bad' : ''}" style="left:${s.x}%;top:${100 - s.y}%" data-a="slotSel" data-i="${i}"><span class="sh">${p ? jersey(club, p.num, { gk: s.pos === 'GB', size: 44 }) : '+'}</span><span class="nm">${p ? esc(pshort(p)) : s.pos}</span><span class="sub">${p ? `${s.pos} · ${rating}${bad ? ' ⚠' : ''}` : ''}</span></button>`;
   }).join('');
   const seg = (key, labels) => `<div class="seg">${labels.map((l, i) => `<button class="${t[key] === i ? 'on' : ''}" data-a="tacSet" data-k="${key}" data-v="${i}">${l}</button>`).join('')}</div>`;
   let picker = '';
