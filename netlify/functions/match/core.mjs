@@ -38,7 +38,7 @@ export function simulerMatch(h, a, graine) {
     minutes.push([
       label, per,
       out.phases.map((ph) => [ph.t, ph.z, ph.k, ph.type || '', ph.ids || []]),
-      out.events.map((e) => [e.type, e.t ?? -1, e.pid || '', e.pid2 || '', e.text || '', e.score || null, e.ph ?? -1]),
+      out.events.map((e) => [e.type, e.t ?? -1, e.pid || '', e.pid2 || '', e.text || '', e.score || 0, e.ph ?? -1]),
     ]);
   }
   return {
