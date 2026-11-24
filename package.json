@@ -1,0 +1,17 @@
+{
+  "name": "tactico",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Tactico - jeu de manager de football dans le navigateur",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node tests/sim.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
