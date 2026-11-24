@@ -1,9 +1,9 @@
 --[[
-	Tactico (Roblox) : branche l'interface rangée dans StarterGui (TacticoGui).
+	Tactico (Roblox) : match amical et bandeau du match, branchés sur l'interface rangée dans StarterGui (TacticoGui).
 	L'interface se modifie directement dans Studio ; ce module garde seulement les noms :
-	Menu (Zone.Domicile / Zone.Exterieur avec Pays, Divisions, Liste.ModeleClub, Choix, Bande ;
-	Bas.Statut, Bas.Hasard, Bas.Lancer), Hud (Tableau, Fil.ModeleLigne, Banniere, Commandes)
-	et Fin (Score, ButsH, ButsA, Stats, Rejouer, Nouveau).
+	Amical (Zone.Domicile / Zone.Exterieur avec Pays, Divisions, Liste.ModeleClub, Choix, Bande ;
+	Bas.Statut, Bas.Hasard, Bas.Lancer, Retour), Hud (Tableau, Fil.ModeleLigne, Banniere, Commandes)
+	et Fin (Score, ButsH, ButsA, Stats, Rejouer, Nouveau). Le HUD sert aussi aux matchs de carrière.
 ]]
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -107,15 +107,15 @@ end
 
 local function lancer(h, a)
 	if not h or not a then
-		statut.Text = "Choisis les deux équipes."
+		statut.Text = "Choose both teams."
 		return
 	end
 	if h == a then
-		statut.Text = "Choisis deux équipes différentes."
+		statut.Text = "Choose two different teams."
 		return
 	end
 	dernierChoix = { h, a }
-	statut.Text = "Préparation du match…"
+	statut.Text = "Preparing the match…"
 	actions.lancer(h, a)
 end
 
@@ -152,7 +152,7 @@ end
 function Interface.init(a)
 	actions = a
 	gui = Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("TacticoGui")
-	menu, hud, fin = gui:WaitForChild("Menu"), gui:WaitForChild("Hud"), gui:WaitForChild("Fin")
+	menu, hud, fin = gui:WaitForChild("Amical"), gui:WaitForChild("Hud"), gui:WaitForChild("Fin")
 	statut = menu:WaitForChild("Bas"):WaitForChild("Statut")
 	tab, fil, ban, cmd = hud:WaitForChild("Tableau"), hud:WaitForChild("Fil"), hud:WaitForChild("Banniere"), hud:WaitForChild("Commandes")
 	modeleLigne = fil:WaitForChild("ModeleLigne")
@@ -174,7 +174,11 @@ function Interface.init(a)
 				end)
 			elseif b.Name == "Menu" then
 				b.Activated:Connect(function()
-					actions.quitter()
+					if Interface.quitterPerso then
+						Interface.quitterPerso()
+					else
+						actions.quitter()
+					end
 				end)
 			end
 		end
@@ -191,7 +195,15 @@ function Interface.init(a)
 		actions.fermer()
 		Interface.menu()
 	end)
-	menu.Visible, hud.Visible, fin.Visible, ban.Visible = true, false, false, false
+	local retour = menu:FindFirstChild("Retour")
+	if retour then
+		retour.Activated:Connect(function()
+			if actions.retour then
+				actions.retour()
+			end
+		end)
+	end
+	menu.Visible, hud.Visible, fin.Visible, ban.Visible = false, false, false, false
 	for _, col in colonnes do
 		majColonne(col)
 	end
@@ -199,11 +211,11 @@ end
 
 function Interface.monde(data)
 	if not data then
-		statut.Text = "Impossible de charger les clubs. Vérifie que les requêtes HTTP sont autorisées."
+		statut.Text = "Could not load the clubs. Check that HTTP requests are allowed."
 		return
 	end
 	monde = data
-	statut.Text = "Choisis deux équipes puis lance le match."
+	statut.Text = "Choose two teams, then kick off."
 	for _, col in colonnes do
 		majColonne(col)
 	end
@@ -211,7 +223,7 @@ end
 
 function Interface.etat(kind, x)
 	if kind == "preparation" then
-		statut.Text = ("Préparation : %s - %s (lancé par %s)…"):format(x.h, x.a, x.par)
+		statut.Text = ("Preparing: %s v %s (started by %s)…"):format(x.h, x.a, x.par)
 	elseif kind == "erreur" then
 		statut.Text = x
 	end
@@ -296,7 +308,21 @@ end
 
 function Interface.menu()
 	hud.Visible, fin.Visible, menu.Visible = false, false, true
-	statut.Text = "Choisis deux équipes puis lance le match."
+	statut.Text = "Choose two teams, then kick off."
+end
+
+-- Ouvre le menu du match amical (depuis l'écran titre) ou cache tout
+function Interface.ouvrir()
+	Interface.menu()
+end
+function Interface.cacher()
+	hud.Visible, fin.Visible, menu.Visible, ban.Visible = false, false, false, false
+end
+function Interface.hud(visible)
+	hud.Visible = visible
+	if not visible then
+		ban.Visible = false
+	end
 end
 
 return Interface

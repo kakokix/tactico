@@ -21,6 +21,8 @@ local RAYON = 0.5
 local rnd = Random.new()
 
 local vitesse = 1
+local accel = 1 -- les phases sans danger passent plus vite (rythme d'un vrai résumé)
+local source = Acteurs -- personnages du match : Acteurs (amical) ou le dossier du joueur (carrière)
 local jeton = 0
 local connexion, dossier, ballon, ui, info
 local centre = CFrame.new(0, 1.2, 0)
@@ -90,7 +92,7 @@ local function charger(a)
 end
 
 local function creerActeur(pid, t, slot)
-	local src = Acteurs:FindFirstChild(pid)
+	local src = source:FindFirstChild(pid)
 	if not src then
 		return nil
 	end
@@ -583,7 +585,7 @@ local function tir(t, typ, issue, ids)
 	end
 	local hTir, arc, duree = 0.4, 0.5, 0.5
 	if typ == "pen" then
-		ui.banniere("PENALTY !", "", Color3.fromRGB(255, 210, 60), 2)
+		ui.banniere("PENALTY!", "", Color3.fromRGB(255, 210, 60), 2)
 		for _, a in acteurs do
 			if a.actif and a ~= s and a ~= gk then
 				a.cible = P(t, u(80, 87), u(12, 56))
@@ -831,17 +833,17 @@ local function evenement(e)
 		ecran(nil, ("%d - %d"):format(score[1], score[2]))
 		ui.fil(txt, true)
 		local club = if et == 0 then info.h else info.a
-		ui.banniere("BUT !", nomDe(pid) .. " · " .. club.n, Color3.fromRGB(46, 204, 113), 3)
+		ui.banniere("GOAL!", nomDe(pid) .. " · " .. club.n, Color3.fromRGB(46, 204, 113), 3)
 		table.insert(buts[et + 1], ("%s' %s"):format(minuteCourante, nomDe(pid)))
 		celebrer(et, acteurs[pid])
 		coupEnvoi(1 - et)
 	elseif typ == "var" then
 		ui.fil(txt)
-		ui.banniere("VAR", "Vérification du but…", Color3.fromRGB(80, 170, 255), 2.2)
+		ui.banniere("VAR", "Checking the goal…", Color3.fromRGB(80, 170, 255), 2.2)
 		attendre(2.2)
 	elseif typ == "vardis" then
 		ui.fil(txt, true)
-		ui.banniere("BUT REFUSÉ", "Décision de la VAR", Color3.fromRGB(255, 90, 90), 2.2)
+		ui.banniere("GOAL DISALLOWED", "VAR decision", Color3.fromRGB(255, 90, 90), 2.2)
 		attendre(1.6)
 		local gk = gardien(1 - et)
 		if gk then
@@ -850,11 +852,11 @@ local function evenement(e)
 		end
 	elseif typ == "yellow" then
 		ui.fil(txt)
-		ui.banniere("CARTON JAUNE", nomDe(pid), Color3.fromRGB(255, 210, 40), 1.8)
+		ui.banniere("YELLOW CARD", nomDe(pid), Color3.fromRGB(255, 210, 40), 1.8)
 		attendre(0.8)
 	elseif typ == "red" then
 		ui.fil(txt, true)
-		ui.banniere("CARTON ROUGE", nomDe(pid), Color3.fromRGB(255, 70, 70), 2.2)
+		ui.banniere("RED CARD", nomDe(pid), Color3.fromRGB(255, 70, 70), 2.2)
 		local a = acteurs[pid]
 		if a then
 			sortir(a)
@@ -868,10 +870,10 @@ local function evenement(e)
 		remplacer(et, pid, e[4])
 	elseif typ == "penmiss" then
 		ui.fil(txt, true)
-		ui.banniere("PENALTY MANQUÉ", nomDe(pid), Color3.fromRGB(255, 160, 60), 2)
+		ui.banniere("PENALTY MISSED", nomDe(pid), Color3.fromRGB(255, 160, 60), 2)
 	elseif typ == "ht" then
 		ui.fil(txt, true)
-		ui.banniere("MI-TEMPS", ("%s %d - %d %s"):format(info.h.a, score[1], score[2], info.a.a), nil, 2.6)
+		ui.banniere("HALF-TIME", ("%s %d - %d %s"):format(info.h.a, score[1], score[2], info.a.a), nil, 2.6)
 		attendre(2.6)
 		periode = 2
 		coupEnvoi(1, true)
@@ -881,7 +883,7 @@ local function evenement(e)
 		coupEnvoi(0, true)
 	elseif typ == "ft" then
 		ui.fil(txt, true)
-		ui.banniere("FIN DU MATCH", ("%s %d - %d %s"):format(info.h.a, score[1], score[2], info.a.a), nil, 3)
+		ui.banniere("FULL TIME", ("%s %d - %d %s"):format(info.h.a, score[1], score[2], info.a.a), nil, 3)
 		attendre(3)
 		fini = true
 	else
@@ -891,6 +893,8 @@ end
 
 local function jouerPhase(ph, suite)
 	local t, z, k, typ, ids = ph[1], ph[2], ph[3], ph[4], ph[5]
+	-- construction, perte de balle et défense : on accélère ; occasions, tirs et coups de pied arrêtés : vitesse normale
+	accel = if k == "build" or k == "lost" or k == "defended" or (k == "final" and typ == "") then 1.8 else 1
 	for _, eq in onze do
 		for _, a in eq do
 			a.jx, a.jy = u(-2, 2), u(-2.5, 2.5)
@@ -939,6 +943,7 @@ local function deroulement(data)
 		end
 		for i, ph in phases do
 			jouerPhase(ph, phases[i + 1])
+			accel = 1
 			for _, e in evts do
 				if e[7] == i - 1 then
 					evenement(e)
@@ -946,7 +951,7 @@ local function deroulement(data)
 			end
 		end
 		if #phases == 0 then
-			attendre(0.8)
+			attendre(0.5)
 		end
 	end
 	if not fini then
@@ -955,7 +960,7 @@ local function deroulement(data)
 	local st = data.stats
 	ui.fin({
 		h = info.h.n, a = info.a.n, score = score, buts = buts,
-		stats = ("Possession %d %% - %d %%   ·   Tirs %d - %d   ·   Cadrés %d - %d"):format(st.poss[1], st.poss[2], st.tirs[1], st.tirs[2], st.cadres[1], st.cadres[2]),
+		stats = ("Possession %d%% - %d%%   ·   Shots %d - %d   ·   On target %d - %d"):format(st.poss[1], st.poss[2], st.tirs[1], st.tirs[2], st.cadres[1], st.cadres[2]),
 	})
 end
 
@@ -987,7 +992,8 @@ function Spectacle.jouer(data, inf, interface)
 	Spectacle.arreter()
 	local monJeton = jeton
 	ui, info = interface, inf
-	vitesse = 1
+	source = if inf.dossier and inf.dossier.Parent then inf.dossier else Acteurs
+	vitesse, accel = 1, 1
 	periode, score, buts, fini = 1, { 0, 0 }, { {}, {} }, false
 	local stade = workspace:FindFirstChild("Stade")
 	local c = stade and stade:FindFirstChild("Centre")
@@ -1004,8 +1010,8 @@ function Spectacle.jouer(data, inf, interface)
 			end
 		end
 	end
-	for _, mdl in Acteurs:GetChildren() do
-		if not acteurs[mdl.Name] then
+	for _, mdl in source:GetChildren() do
+		if mdl:IsA("Model") and not acteurs[mdl.Name] then
 			creerActeur(mdl.Name, nil, nil)
 		end
 	end
@@ -1029,7 +1035,7 @@ function Spectacle.jouer(data, inf, interface)
 			if monJeton ~= jeton then
 				error(ARRET, 0)
 			end
-			t += dt * vitesse
+			t += dt * vitesse * accel
 		until t >= s
 	end
 	connexion = RunService.RenderStepped:Connect(maj)
