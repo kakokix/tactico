@@ -23,7 +23,7 @@ Jeu de manager de foot en JavaScript pur (sans framework), en français. L'utili
 
 ## Règles
 - Monde réel : vrais noms de clubs, de joueurs, de championnats et de stades (choix de l'utilisateur, prévenu des questions de droits). Jamais de vrai logo : écussons génériques aux couleurs du club. Entraîneurs fictifs. Jamais de fausse citation attribuée à un vrai joueur (messages en style indirect). L'avertissement « jeu non officiel » reste sur l'écran titre et en pied de page.
-- Jamais de photo ni de visage ressemblant d'un vrai joueur, ni sur le site ni sur Roblox : droits à l'image.
+- Jamais de photo ni de portrait d'un vrai joueur. Sur Roblox, une star peut être rappelée par un personnage R6 (coupe du catalogue, teint), mais seulement sous un nom modifié (choix de l'utilisateur). Les autres joueurs ont un look au hasard : ne jamais deviner l'apparence d'après le nom ou la nationalité.
 - Le monde fictif reste disponible (choix à la création de carrière) et les anciennes sauvegardes fictives doivent continuer à fonctionner.
 - Toute valeur affichée passe par `esc()`.
 - Après une modification : `node build.mjs`, `node tests/realdata.mjs`, `node tests/sim.mjs 2` (monde réel ; ajouter `777 fictif` pour le monde fictif), `node tests/engine.mjs`, puis test navigateur (`python3 tests/ui.py`, `python3 tests/ui_live.py` pour le match en direct, avec `python3 -m http.server 8765 --directory dist`).
