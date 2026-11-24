@@ -1,6 +1,6 @@
--- Les deux identifiants viennent de l'import des atlas src/assets/roblox-icones.png et roblox-drapeaux.png (assetType Image).
+-- Identifiants des atlas importés le 24/11/2026 (src/assets/roblox-icones.png et roblox-drapeaux.png, assetType Image). Si les atlas changent, les réimporter et remplacer ces deux identifiants.
 -- Pose les icônes du kit Tactico Outline (22 frames) dans TacticoGui, à partir des deux atlas importés.
-local ICONES, DRAPEAUX = "rbxassetid://%ICONES%", "rbxassetid://%DRAPEAUX%"
+local ICONES, DRAPEAUX = "rbxassetid://99327349946191", "rbxassetid://90302822209659"
 local CHS = game:GetService("ChangeHistoryService")
 local rec = CHS:TryBeginRecording("Tactico : icônes Outline")
 local gui = game.StarterGui.TacticoGui
@@ -9,7 +9,7 @@ local POSES = {
 	{ "Titre.Colonne.Boutons.Reprendre.Pictogramme.ImageOutline", "i", 30 },
 	{ "Titre.Colonne.Boutons.Amical.Pictogramme.ImageOutline", "i", 43 },
 	{ "Titre.Colonne.Boutons.Mondial.Pictogramme.ImageOutline", "i", 2 },
-	{ "Titre.Colonne.Boutons.Site.Pictogramme.ImageOutline", "i", 2 },
+	{ "Titre.Colonne.Boutons.Site.Pictogramme.ImageOutline", "i", 17 },
 	{ "Creation.Page.Pays.FR.Pictogramme.ImageOutline", "d", 74 },
 	{ "Creation.Page.Pays.EN.Pictogramme.ImageOutline", "d", 254 },
 	{ "Creation.Page.Pays.ES.Pictogramme.ImageOutline", "d", 67 },
