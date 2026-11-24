@@ -40,7 +40,7 @@ for (let i = 0; i < 4000; i++) {
     console.log('  Coupes:', rep.cups.map(c=>c.name+': '+(c.winner?S.clubs[c.winner].name:'?')).join(' | '), '| Conti:', rep.conti ? S.clubs[rep.conti].name : '?');
     console.log('  Gold:', rep.gold?.n, '| User:', JSON.stringify(rep.user));
     console.log('  transfers:', S.transfers.length, '|', stat());
-    console.log('  mgr', JSON.stringify(S.mgr.career), 'rep', S.mgr.rep, 'conf', S.mgr.conf, 'club', S.user && S.clubs[S.user].name);
+    console.log('  mgr', JSON.stringify(S.mgr.career), 'rep', S.mgr.rep, 'conf', S.mgr.conf, 'club', S.user && S.clubs[S.user].name, 'balance', S.user && Math.round(S.clubs[S.user].balance/1e5)/10, 'tB', S.user && Math.round(S.clubs[S.user].tBudget/1e5)/10);
     if (seasons >= seasonsWanted) break;
   }
   // gérer les actions en attente

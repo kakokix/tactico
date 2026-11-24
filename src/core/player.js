@@ -100,7 +100,7 @@ export function createPlayer(state, { nat, pos, ovr, age, pot, club = null }) {
     wage: 0, until: state.season + 1, value: 0,
     morale: R.int(60, 80), cond: 100, form: 6.5, inj: 0, injName: '', susp: 0, yc: 0,
     st: newSeasonStats(), car: { apps: 0, gls: 0, ast: 0 }, hist: [],
-    listed: false, loan: null, youth: false, gp: 0, rm: 0.5, joined: state.day,
+    listed: false, loan: null, youth: false, gp: 0, rm: 0.5, joined: state.day - 400,
   };
   p.pot = pot != null ? Math.max(pot, p.ovr) : potentialFor(p.ovr, age);
   p.o0 = p.ovr;

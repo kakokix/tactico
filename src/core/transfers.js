@@ -59,7 +59,7 @@ export function wageDemand(state, p, club) {
 
 // Le joueur accepte-t-il de rejoindre ce club ?
 export function willJoin(state, p, club) {
-  if (p.club === club.id) return { ok: true };
+  if (p.club === club.id || !p.club) return { ok: true };
   const cur = p.club ? state.clubs[p.club] : null;
   const curRep = cur ? cur.rep : 30;
   if (club.rep < curRep - 22 && p.ovr >= 70) return { ok: false, reason: `${pname(p)} ne souhaite pas rejoindre un club moins prestigieux.` };

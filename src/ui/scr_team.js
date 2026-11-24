@@ -53,7 +53,7 @@ function squadScreen() {
 
 // ---------- Fiche joueur ----------
 export function potText(S, p) {
-  if (p.club === S.user) return `${p.pot}`;
+  if (p.club === S.user || p.age >= 27 || p.pot <= p.ovr) return `${p.pot}`;
   const lo = Math.max(p.ovr, p.pot - 4), hi = Math.min(99, p.pot + 4);
   return lo === hi ? `${lo}` : `${lo}-${hi}`;
 }
