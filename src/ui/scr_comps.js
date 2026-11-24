@@ -69,7 +69,7 @@ function compsScreen() {
   const S = G.S;
   const f = ui.f.cp || (ui.f.cp = { tab: 'league', cc: S.user ? S.clubs[S.user].country : 'FR', lvl: S.user ? S.comps[S.clubs[S.user].league].level : 1, rd: null, stat: 'gls' });
   const tabs = [['league', 'Championnats'], ['results', 'Résultats'], ['cup', 'Coupes'], ['conti', contiName(G.S)], ['stats', 'Statistiques'], ['hist', 'Palmarès']];
-  const countrySel = `<div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${f.cc === C.code ? 'on' : ''}" data-a="cpCountry" data-c="${C.code}">${flag(C.code)} ${C.name}</button>`).join('')}</div>`;
+  const countrySel = `<div class="tabs pays">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${f.cc === C.code ? 'on' : ''}" data-a="cpCountry" data-c="${C.code}">${flag(C.code)} ${C.name}</button>`).join('')}</div>`;
   const lvlSel = `<div class="seg mb"><button class="${f.lvl === 1 ? 'on' : ''}" data-a="cpLvl" data-l="1">${esc(S.comps[f.cc + '1'].name)}</button><button class="${f.lvl === 2 ? 'on' : ''}" data-a="cpLvl" data-l="2">${esc(S.comps[f.cc + '2'].name)}</button></div>`;
   let body = '';
   if (f.tab === 'league') {

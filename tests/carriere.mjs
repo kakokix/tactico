@@ -21,7 +21,7 @@ const store = { get: async (k) => mem.get(k) ?? null, set: async (k, v) => { mem
 let erreurs = 0;
 const err = (m) => { erreurs++; console.log('ERREUR', m); };
 // Le jeu Roblox est en anglais : aucun mot français dans les textes renvoyés (hors noms propres)
-const FR = /\b(Saison|Objectif|joueurs|Victoire|Défaite|Match nul|domicile|extérieur|Budget transferts|réputation|Entraîneur|Sans club|non lu|Tirage|Blessure|Président|Adjoint|Médecin|semaine|libre|prêt|journée|Coupe d'Europe|Angleterre|Espagne|Allemagne|Italie|Finir|maintien|Bienvenue)\b/;
+const FR = /\b(Saison|Objectif|joueurs|Victoire|Défaite|Match nul|domicile|extérieur|Budget transferts|réputation|Entraîneur|Sans club|non lu|Tirage|Blessure|Président|Adjoint|Médecin|semaine|libre|prêt|journée|Coupe d'Europe|Angleterre|Espagne|Allemagne|Italie|Turquie|Écosse|Finir|maintien|Bienvenue)\b/;
 const textes = (o, out = []) => {
   if (typeof o === 'string') out.push(o);
   else if (o && typeof o === 'object') for (const v of Object.values(o)) textes(v, out);

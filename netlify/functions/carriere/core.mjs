@@ -75,11 +75,18 @@ function mondeDeBase() {
 export function nouveauJeton() {
   return randomBytes(16).toString('hex');
 }
+// Noms de coupes en français dans les premières carrières à dix pays : le jeu Roblox est en anglais
+const COUPES_RENOMMEES = { 'Coupe de Turquie': 'Türkiye Kupası', "Coupe d'Écosse": 'Scottish Cup' };
+export function nomsDeCoupes(S) {
+  for (const c of Object.values(S.comps || {})) if (COUPES_RENOMMEES[c.name]) c.name = COUPES_RENOMMEES[c.name];
+  for (const c of S.countries || []) if (COUPES_RENOMMEES[c.cup]) c.cup = COUPES_RENOMMEES[c.cup];
+  return S;
+}
 export async function charger(store, t) {
   if (!/^[a-f0-9]{32}$/.test(t || '')) return null;
   const buf = await store.get('c/' + t, { type: 'arrayBuffer' });
   if (!buf) return null;
-  return deserialize(gunzipSync(Buffer.from(buf)).toString('utf8'));
+  return nomsDeCoupes(deserialize(gunzipSync(Buffer.from(buf)).toString('utf8')));
 }
 export async function sauver(store, t, S) {
   const gz = gzipSync(Buffer.from(serialize(S), 'utf8'));
@@ -266,7 +273,12 @@ VUES.competitions = (S, q = {}) => {
   } else if (onglet === 'coupes' || onglet === 'europe') {
     const cid = onglet === 'coupes' ? pays + 'C' : 'CONT';
     out.titre = S.comps[cid]?.name || (onglet === 'europe' ? contiName(S) : 'Cup');
-    out.matchs = Object.values(S.matches).filter((m) => m.c === cid).sort((a, b) => b.d - a.d).slice(0, 60).map((m) => ({
+    // prochains matchs d'abord (le plus proche en premier), puis les résultats (le plus récent en premier), puis la suite
+    const tous = Object.values(S.matches).filter((m) => m.c === cid);
+    const aVenir = tous.filter((m) => !m.done).sort((a, b) => a.d - b.d);
+    const joues = tous.filter((m) => m.done).sort((a, b) => b.d - a.d);
+    const proche = aVenir.length ? aVenir[0].d + 3 : -1;
+    out.matchs = [...aVenir.filter((m) => m.d <= proche), ...joues, ...aVenir.filter((m) => m.d > proche)].slice(0, 60).map((m) => ({
       date: `${fmtDate(m.d, 'dm')}${m.lb ? ' · ' + m.lb : ''}`,
       txt: m.done ? `${S.clubs[m.h].name} ${m.hg}-${m.ag} ${S.clubs[m.a].name}${m.pen ? ` (${m.pen[0]}-${m.pen[1]} pens)` : ''}` : `${S.clubs[m.h].name} v ${S.clubs[m.a].name}`,
       moi: m.h === S.user || m.a === S.user ? 1 : 0,
@@ -858,7 +870,7 @@ const ERREURS_LIEN = {
 async function importer(b, store) {
   const r = await retirer(store, b.code, 'site');
   if (r.erreur) return { error: ERREURS_LIEN[r.erreur] };
-  const S = adapterPourRoblox(r.S);
+  const S = nomsDeCoupes(adapterPourRoblox(r.S));
   if (typeof b.nom === 'string' && b.nom.trim()) S.mgr.name = b.nom.trim().slice(0, 20);
   S.flags.lbDirty = true;
   const t = /^[a-f0-9]{32}$/.test(b.t || '') ? b.t : nouveauJeton();

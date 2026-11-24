@@ -72,7 +72,7 @@ function clubScreen() {
   return `<div class="ph"><div class="row">${crest(c, 'xl')}<div><h1>${esc(c.name)}</h1><div class="sub">${esc(comp.name)} · ${stars(c.rep)} · ${esc(c.stadium.name)}</div></div></div></div>
   <div class="grid2">
     <div class="card"><h3 class="mb">${ICON.club}Le président</h3>
-      <div class="kpis"><div class="kpi"><small>Confiance</small><b>${Math.round(conf)}% · ${confLabel(conf)}</b><div class="bar" style="margin-top:6px"><i style="width:${conf}%;background:${conf >= 60 ? 'var(--green)' : conf >= 35 ? 'var(--orange)' : 'var(--red)'}"></i></div></div><div class="kpi"><small>Position actuelle</small><b>${comp.table[c.id].p ? pos + 'e' : '—'}</b></div></div>
+      <div class="kpis"><div class="kpi"><small>Confiance</small><b>${Math.round(conf)}%<span class="small muted"> · ${esc(confLabel(conf))}</span></b><div class="bar" style="margin-top:6px"><i style="width:${conf}%;background:${conf >= 60 ? 'var(--green)' : conf >= 35 ? 'var(--orange)' : 'var(--red)'}"></i></div></div><div class="kpi"><small>Position actuelle</small><b>${comp.table[c.id].p ? pos + 'e' : '—'}</b></div></div>
       <div class="note mt"><b>Objectif :</b> ${esc(c.obj.label)}</div>
       <p class="small muted mt">La confiance monte avec les victoires et les trophées, baisse avec les défaites et les finances dans le rouge. Sous 12 %, tu es licencié.</p>
     </div>

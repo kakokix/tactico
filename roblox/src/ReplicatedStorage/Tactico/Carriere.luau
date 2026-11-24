@@ -12,6 +12,7 @@ local T = RS:WaitForChild("Tactico")
 local Remotes = T:WaitForChild("Remotes")
 local Spectacle = require(T:WaitForChild("Spectacle"))
 local Interface = require(T:WaitForChild("Interface"))
+local Ecran = require(T:WaitForChild("Ecran"))
 
 local Carriere = {}
 local joueur = Players.LocalPlayer
@@ -627,12 +628,63 @@ PAGES.messagerie = function(d)
 	p.Vide.Visible = #(d.messages or {}) == 0
 end
 
+-- Tableau trop étroit (petit écran, ordinateur portable) : on cache d'abord les colonnes de la liste `cacher`
+-- et on recolle les autres à droite, pour que la colonne souple (le nom) garde au moins `minSouple` points
+local function ajusterColonnes(tab, souple, cacher, minSouple)
+	local largeur = tab.Entete.AbsoluteSize.X / Ecran.echelle()
+	for _, r in { tab.Entete, tab.Lignes.Modele } do
+		local s = r:FindFirstChild(souple)
+		if not s then
+			continue
+		end
+		if s:GetAttribute("Base") == nil then
+			s:SetAttribute("Base", s.Size.X.Offset)
+		end
+		local colonnes, total = {}, 0
+		for _, c in r:GetChildren() do
+			if c:IsA("GuiObject") and c.Position.X.Scale == 1 and c.Size.X.Scale == 0 then
+				if c:GetAttribute("Base") == nil then
+					c:SetAttribute("Base", c.Position.X.Offset)
+				end
+				table.insert(colonnes, c)
+				total += c.Size.X.Offset
+			end
+		end
+		table.sort(colonnes, function(a, b)
+			return a:GetAttribute("Base") > b:GetAttribute("Base")
+		end)
+		local gauche = -s:GetAttribute("Base") - total
+		local libre = largeur - gauche - total
+		local masquer = {}
+		for _, nom in cacher do
+			if libre >= minSouple then
+				break
+			end
+			local c = r:FindFirstChild(nom)
+			if c then
+				masquer[nom] = true
+				libre += c.Size.X.Offset
+			end
+		end
+		local x = 0
+		for _, c in colonnes do
+			c.Visible = not masquer[c.Name]
+			if c.Visible then
+				x += c.Size.X.Offset
+				c.Position = UDim2.new(1, -x, c.Position.Y.Scale, c.Position.Y.Offset)
+			end
+		end
+		s.Size = UDim2.new(1, -(gauche + x), s.Size.Y.Scale, s.Size.Y.Offset)
+	end
+end
+
 PAGES.effectif = function(d)
 	local p = contenu.effectif
 	p.Entete.Textes.Sous.Text = d.sous or d.vide or ""
 	marquer(p.Groupes, d.g or "all")
 	marquer(p.Tri, d.tri or "pos")
 	local tab = p.Carte.Tableau
+	ajusterColonnes(tab, "Nom", { "Pd", "B", "MJ", "Moy", "Fo", "Mo", "Pot", "Sal" }, 220)
 	vider(tab.Lignes)
 	for i, j in d.joueurs or {} do
 		local nom = echap(j.nom)

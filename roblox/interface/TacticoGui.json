@@ -5370,8 +5370,8 @@
       "Name": "Tableau",
       "Position": [
        "UDim2",
+       0.5,
        0,
-       16,
        0,
        16
       ],
@@ -5388,6 +5388,11 @@
        330,
        0,
        44
+      ],
+      "AnchorPoint": [
+       "Vector2",
+       0.5,
+       0
       ]
      },
      "classe": "Frame"
@@ -11752,7 +11757,7 @@
             "Padding": [
              "UDim",
              0,
-             4
+             2
             ],
             "Name": "UIListLayout",
             "SortOrder": [
@@ -11986,7 +11991,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -12283,7 +12288,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -12516,7 +12521,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -12749,7 +12754,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -13036,7 +13041,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -13269,7 +13274,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -13502,7 +13507,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -13735,7 +13740,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -13968,7 +13973,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -14201,7 +14206,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -14488,7 +14493,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -14721,7 +14726,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -14954,7 +14959,7 @@
              1,
              0,
              0,
-             50
+             44
             ]
            },
            "classe": "TextButton"
@@ -14967,7 +14972,7 @@
            "AutomaticSize",
            "Y"
           ],
-          "ScrollBarThickness": 0,
+          "ScrollBarThickness": 4,
           "Transparency": 1,
           "Name": "Liste",
           "CanvasPosition": [
@@ -14990,6 +14995,12 @@
            0,
            1,
            0
+          ],
+          "ScrollBarImageColor3": [
+           "Color3",
+           43,
+           74,
+           57
           ]
          },
          "classe": "ScrollingFrame"
@@ -62323,7 +62334,7 @@
            24,
            17
           ],
-          "LayoutOrder": 2,
+          "LayoutOrder": -1,
           "ZIndex": 23,
           "BorderSizePixel": 0,
           "Size": [
@@ -65098,7 +65109,7 @@
     "AnchorPoint": [
      "Vector2",
      0.5,
-     0
+     1
     ],
     "BackgroundColor3": [
      "Color3",
@@ -65111,8 +65122,8 @@
      "UDim2",
      0.5,
      0,
-     0,
-     88
+     1,
+     -28
     ],
     "AutomaticSize": [
      "Enum",

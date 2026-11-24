@@ -106,6 +106,7 @@ p{margin:.4em 0}
 /* ---------- Onglets / puces ---------- */
 .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
+@media(min-width:960px){.tabs.pays{flex-wrap:wrap;overflow:visible}table.tbl th,table.tbl td{padding-left:7px;padding-right:7px}}
 .tab{flex:none;border:1px solid var(--line2);background:var(--panel);color:var(--mute);border-radius:999px;padding:8px 14px;min-height:38px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap}
 .tab.on{background:var(--ink);color:#0b130e;border-color:var(--ink)}
 .seg{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px;flex-wrap:wrap}

@@ -19,7 +19,7 @@ local function ajouter(chemin, inst)
 	end
 end
 local RS = game:GetService("ReplicatedStorage").Tactico
-for _, n in { "Config", "Apparence", "Interface", "Spectacle", "Carriere" } do
+for _, n in { "Config", "Apparence", "Interface", "Spectacle", "Carriere", "Ecran" } do
 	ajouter("ReplicatedStorage/Tactico/" .. n .. ".luau", RS:FindFirstChild(n))
 end
 ajouter("ServerScriptService/TacticoServeur.server.luau", game:GetService("ServerScriptService"):FindFirstChild("TacticoServeur"))

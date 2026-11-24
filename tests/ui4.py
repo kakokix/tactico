@@ -55,7 +55,7 @@ with sync_playwright() as p:
     page.locator('.bnav [data-s=more]').click(); page.locator('.main [data-s=training]').click(); page.click('[data-a=trainFocus][data-k=att]'); page.click('[data-a=trainInt][data-v="2"]'); time.sleep(0.2)
     page.locator('.bnav [data-s=more]').click(); page.locator('.main [data-s=finances]').click(); time.sleep(0.2)
     page.locator('[data-a=budgetShift][data-v="1"]').click(); time.sleep(0.2)
-    if page.locator('[data-a=facUp]').count(): page.locator('[data-a=facUp]').first.click(); time.sleep(0.2)
+    if page.locator("[data-a=facUp]:not([disabled])").count(): page.locator("[data-a=facUp]:not([disabled])").first.click(); time.sleep(0.2)
     print('fac:', last_toast(page))
     page.locator('.bnav [data-s=more]').click(); page.locator('.main [data-s=club]').click(); page.locator('[data-a=delegate][data-k=renew]').click(); time.sleep(0.2)
     page.locator('.bnav [data-s=more]').click(); page.locator('.main [data-s=options]').click(); page.click('[data-a=saveNow]'); time.sleep(0.4); print('save:', last_toast(page))

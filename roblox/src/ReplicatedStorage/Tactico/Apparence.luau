@@ -73,6 +73,15 @@ function Apparence.creerJoueur(look, kit, numero, nom)
 	local m = Players:CreateHumanoidModelFromDescription(d, Enum.HumanoidRigType.R6)
 	m.PrimaryPart = m.HumanoidRootPart -- sinon le pivot est la tête
 	m.Humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	-- La coupe et la barbe sont soudées à la tête, mais la soudure ne les place qu'une fois dans le Workspace :
+	-- on les place tout de suite (sinon elles flottent loin de la tête sur le portrait de la fiche, ancré hors du Workspace)
+	for _, acc in m:GetChildren() do
+		local h = acc:IsA("Accessory") and acc:FindFirstChild("Handle")
+		local w = h and h:FindFirstChildWhichIsA("JointInstance")
+		if w and w.Part0 == h and w.Part1 then
+			h.CFrame = w.Part1.CFrame * w.C1 * w.C0:Inverse()
+		end
+	end
 	for _, s in m:GetDescendants() do
 		if s:IsA("BaseScript") then
 			s:Destroy()

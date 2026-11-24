@@ -9,6 +9,10 @@ local Remotes = T:WaitForChild("Remotes")
 local Interface = require(T:WaitForChild("Interface"))
 local Spectacle = require(T:WaitForChild("Spectacle"))
 local Carriere = require(T:WaitForChild("Carriere"))
+local Ecran = require(T:WaitForChild("Ecran"))
+
+-- L'interface s'adapte à l'écran (téléphone, tablette, ordinateur) avant tout le reste
+Ecran.init(game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("TacticoGui"))
 
 -- Le match amical est diffusé à tout le serveur : on ne le montre qu'aux joueurs qui sont dans le menu amical
 local modeAmical = false

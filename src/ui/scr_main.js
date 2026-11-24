@@ -74,7 +74,7 @@ function clubStep() {
   const clubs = comp.clubs.map((id) => S.clubs[id]).sort((a, b) => b.rep - a.rep);
   return `<div class="main" style="max-width:1100px;padding-bottom:40px">
     <div class="ph"><div><button class="btn ghost sm" data-a="toMgrStep">${ICON.back} Retour</button><h1 class="mt">Choisis ton club</h1><div class="sub">Plus le club est petit, plus le défi (et les points) sont grands.</div></div></div>
-    <div class="tabs">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${cc === C.code ? 'on' : ''}" data-a="pickCountry" data-c="${C.code}">${flag(C.code)} ${C.name}</button>`).join('')}</div>
+    <div class="tabs pays">${LEAGUE_COUNTRIES.map((C) => `<button class="tab ${cc === C.code ? 'on' : ''}" data-a="pickCountry" data-c="${C.code}">${flag(C.code)} ${C.name}</button>`).join('')}</div>
     <div class="seg mb"><button class="${lvl === 1 ? 'on' : ''}" data-a="pickLvl" data-l="1">${esc(S.comps[cc + '1'].name)}</button><button class="${lvl === 2 ? 'on' : ''}" data-a="pickLvl" data-l="2">${esc(S.comps[cc + '2'].name)}</button></div>
     <div class="clubpick">${clubs.map((c) => `<button class="cp" data-a="clubInfo" data-id="${c.id}">${crest(c, 'lg')}<span class="grow"><b style="font-family:var(--cond);font-size:19px">${esc(c.name)}</b><br>${stars(c.rep)} <span class="muted small">Note ${Math.round(c.str)}</span><br><span class="muted small">${esc(computeObjective(S, c).label)}</span></span></button>`).join('')}</div>
   </div>`;

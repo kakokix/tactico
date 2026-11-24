@@ -17,13 +17,15 @@ Version Roblox de Tactico, **entièrement en anglais** : le mode carrière compl
 
 | Dossier | Contenu |
 | --- | --- |
-| `src/ReplicatedStorage/Tactico/` | `Config`, `Apparence` (coupes, teints, maillots, création des R6), `Interface` (match amical), `Carriere` (les 13 écrans de la carrière), `Spectacle` (le match en 3D) |
+| `src/ReplicatedStorage/Tactico/` | `Config`, `Apparence` (coupes, teints, maillots, création des R6), `Interface` (match amical), `Carriere` (les 13 écrans de la carrière), `Spectacle` (le match en 3D), `Ecran` (adapte l'interface à l'écran) |
 | `src/ServerScriptService/TacticoServeur.server.luau` | chargement du monde, préparation des matchs |
 | `src/StarterPlayerScripts/TacticoClient.client.luau` | relie l'interface, le serveur et le match |
 | `interface/` | `StarterGui.TacticoGui`, construite dans Studio. `TacticoGui.luau` la recrée (barre de commande), `TacticoGui.json` la décrit |
 | `stade/Stade.luau` | le stade |
 
 Dans Studio, il faut aussi le dossier `ReplicatedStorage.Tactico.Remotes` avec quatre objets : `Monde` (RemoteFunction) et `Lancer`, `Match`, `Etat` (RemoteEvent). Il faut également un dossier vide `ReplicatedStorage.Tactico.Acteurs`. Enfin, l'option « Allow HTTP Requests » doit être activée.
+
+**Écrans.** L'interface est dessinée pour un écran d'au moins 1100 × 600 points. Sur un plus petit écran (téléphone), `Ecran.luau` réduit chaque cadre principal d'un bloc (UIScale) et l'agrandit d'autant : la mise en page de l'ordinateur reste la même, en plus petit. Il évite aussi les boutons de Roblox en haut à gauche (`GuiService.TopbarInset`). Le tableau de l'effectif cache ses colonnes les moins utiles quand il manque de place. Le jeu se joue en paysage (`StarterGui.ScreenOrientation = LandscapeSensor`). Pour tester un téléphone dans Studio : `StudioDeviceSimulatorService:SetDeviceAsync("iphone_17_pro")` avant Play, puis `StopSimulationAsync()` à la fin.
 
 L'interface se modifie directement dans Studio. Seuls les noms utilisés par `Interface.luau` doivent rester les mêmes :
 - `Menu.Zone.Domicile` et `Menu.Zone.Exterieur`, qui contiennent `Pays`, `Divisions`, `Liste.ModeleClub`, `Choix` et `Bande` ;

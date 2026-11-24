@@ -25,8 +25,8 @@ export const REAL_COUNTRIES = [
   { code: 'PT', name: 'Portugal', d1: 'Liga Portugal', d2: 'Liga Portugal 2', cup: 'Taça de Portugal', str: 0.91, tv: 14, down: 2, up: 2, po: 'barrage', conti: 1 },
   { code: 'NL', name: 'Pays-Bas', d1: 'Eredivisie', d2: 'Eerste Divisie', cup: 'KNVB Beker', str: 0.9, tv: 13, down: 2, up: 2, po: 'barrage', conti: 1 },
   { code: 'BE', name: 'Belgique', d1: 'Pro League', d2: 'Challenger Pro League', cup: 'Coupe de Belgique', str: 0.88, tv: 10, down: 2, up: 2, po: null, conti: 0 },
-  { code: 'TR', name: 'Turquie', d1: 'Süper Lig', d2: '1. Lig', cup: 'Coupe de Turquie', str: 0.9, tv: 16, down: 3, up: 2, po: 'playoff', conti: 0 },
-  { code: 'SCO', name: 'Écosse', d1: 'Premiership', d2: 'Championship', cup: 'Coupe d\'Écosse', str: 0.84, tv: 6, down: 1, up: 1, po: 'barrage', conti: 0 },
+  { code: 'TR', name: 'Turquie', d1: 'Süper Lig', d2: '1. Lig', cup: 'Türkiye Kupası', str: 0.9, tv: 16, down: 3, up: 2, po: 'playoff', conti: 0 },
+  { code: 'SCO', name: 'Écosse', d1: 'Premiership', d2: 'Championship', cup: 'Scottish Cup', str: 0.84, tv: 6, down: 1, up: 1, po: 'barrage', conti: 0 },
 ];
 export const REAL_CONTI = "Coupe d'Europe";
 
