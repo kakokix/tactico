@@ -2,6 +2,8 @@
 
 Jeu de manager de football gratuit, dans le navigateur, avec un **classement mondial** en ligne.
 
+👉 **Jouer : https://tactico123.netlify.app**
+
 - 5 pays (France, Angleterre, Espagne, Italie, Allemagne), 2 divisions chacun, 180 clubs et plus de 5 000 joueurs **fictifs**
 - Montées et descentes, coupes nationales, Coupe des Étoiles (coupe continentale)
 - Matchs en direct sur un terrain 2D (commentaires, stats, remplacements, causerie de mi-temps) ou en résultat rapide

@@ -1,7 +1,7 @@
 // Client du classement mondial.
 import { careerScore, trophyCount } from '../core/score.js';
 
-export const SITE_URL = 'https://tactico-foot.netlify.app';
+export const SITE_URL = 'https://tactico123.netlify.app';
 const API = '/api/leaderboard';
 let lastSubmit = 0;
 let cache = { at: 0, id: null, data: null };

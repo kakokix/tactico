@@ -20,5 +20,6 @@ Jeu de manager de foot en JavaScript pur (sans framework), en français. L'utili
 - Après une modification : `node build.mjs`, `node tests/sim.mjs 2`, puis test navigateur (`python3 tests/ui.py` avec `python3 -m http.server 8765 --directory dist`).
 
 ## Mise en ligne
-- `git push origin main` : Netlify reconstruit et publie le site automatiquement.
+- Site public : https://tactico123.netlify.app (projet Netlify `tactico123`, id `9cd0f0a1-6b0c-4f67-929a-6d18aba6e205`, relié à GitHub `kakokix/tactico`).
+- `git push origin main` : Netlify reconstruit et publie le site automatiquement. Vérifier ensuite `https://tactico123.netlify.app/api/leaderboard` (JSON attendu).
 - Republier aussi l'artefact Claude https://claude.ai/artifact/NpEFT7f33sv9NbiCjiHcAC avec `dist/index.html` (le classement y est remplacé par un lien vers le site).
