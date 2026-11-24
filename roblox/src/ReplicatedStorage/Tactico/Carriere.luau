@@ -377,6 +377,7 @@ local function boutonModale(i, txt, style, fn)
 end
 local function texteModale(t, col)
 	corps.Texte.Visible = true
+	corps.Texte.RichText = false
 	corps.Texte.Text = t or ""
 	corps.Texte.TextColor3 = col or C.ink
 end
@@ -1669,6 +1670,51 @@ local function classementModale()
 	end
 end
 
+-- ---------- Liaison avec le site (code à 6 caractères) ----------
+local function importerDuSite()
+	ouvrirModale("Import from website", "Play your website career here")
+	texteModale("1. On tactico123.netlify.app, open Options, then « Envoyer ma carrière vers Roblox ».\n2. Enter the 6-character code below. It works once, for 30 minutes.\n\nReal players get changed names here, and the game is in English.", C.mute)
+	if joueur:GetAttribute("Carriere") then
+		corps.Retour.Visible = true
+		corps.Retour.Text = "This replaces your current Roblox career."
+	end
+	local box = corps.Actions.Montant
+	box.Visible = true
+	box.Text = ""
+	box.PlaceholderText = "Code, e.g. ABC123"
+	boutonModale(1, "Import", "pri", function()
+		local code = string.upper((box.Text:gsub("[^%w]", "")))
+		if #code ~= 6 then
+			toast("Enter the 6-character code shown on the website.", "warn")
+			return
+		end
+		local res = appeler({ a = "importer", code = code }, "Importing your career…")
+		if res.error then
+			toast(res.error, "err")
+			return
+		end
+		fermerModale()
+		titre.Visible = false
+		creation.Visible = false
+		jeu.Visible = true
+		ecranCourant = nil
+		afficher(res)
+	end)
+	boutonModale(2, "Cancel", "normal", fermerModale)
+end
+
+local function envoyerAuSite()
+	local res = appeler({ a = "exporter" }, "Preparing your code…")
+	if res.error then
+		toast(res.error, "err")
+		return
+	end
+	ouvrirModale("Send to website", "Continue this career on the website")
+	texteModale(("<font size=\"46\" color=\"#c6f43d\"><b>%s</b></font>\n\n1. Open tactico123.netlify.app.\n2. Go to Options, then « Récupérer ma carrière Roblox ».\n3. Enter this code. It works once, for %d minutes.\n\nYour career also stays here on Roblox."):format(echap(res.code or ""), res.minutes or 30))
+	corps.Texte.RichText = true
+	boutonModale(1, "OK", "pri", fermerModale)
+end
+
 -- ---------- Branchements ----------
 local function brancherTout()
 	local B = titre.Colonne.Boutons
@@ -1692,6 +1738,7 @@ local function brancherTout()
 		end
 	end)
 	B.Mondial.Activated:Connect(classementModale)
+	B.Site.Activated:Connect(importerDuSite)
 	joueur:GetAttributeChangedSignal("Carriere"):Connect(function()
 		B.Reprendre.Visible = joueur:GetAttribute("Carriere") == true
 	end)
@@ -1870,6 +1917,9 @@ local function brancherTout()
 	-- options
 	local op = contenu.options.Carte.Boutons
 	op.Titre.Activated:Connect(Carriere.titre)
+	local site = contenu.options.Site.Boutons
+	site.Envoyer.Activated:Connect(envoyerAuSite)
+	site.Importer.Activated:Connect(importerDuSite)
 	op.Abandonner.Activated:Connect(function()
 		confirmer("Abandon your career?", "Your career will be deleted for good. Your world ranking score stays on the leaderboard.", "Abandon career", function()
 			local res = appeler({ a = "supprimer" })

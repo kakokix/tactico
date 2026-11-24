@@ -1,6 +1,6 @@
 // Écran Mercato + négociations (transferts, contrats, prêts).
 import { G, ui, register, render, openModal, closeModal, modalHead, toast, persist, replaceModal } from './app.js';
-import { ICON, esc, crest, flag, money, ovrB, posB } from './util.js';
+import { ICON, esc, crest, flag, money, ovrB, posB, avatar } from './util.js';
 import { POS, POS_GROUP, LEAGUE_COUNTRIES } from '../core/constants.js';
 import { pname, playerValue } from '../core/player.js';
 import { askingPrice, evaluateBid, wageDemand, willJoin, contractResponse, canAfford, executeTransfer, loanTargets, loanFee, fmtMoney } from '../core/transfers.js';
@@ -26,7 +26,7 @@ function marketScreen() {
   let body = '';
   const row = (p) => {
     const c = p.club ? S.clubs[p.club] : null;
-    return `<button class="li" data-a="player" data-id="${p.id}">${posB(p.pos)}<span class="grow"><span class="nm">${flag(p.nat)} ${esc(pname(p))}</span><span class="meta">${p.age} ans · ${c ? esc(c.name) : 'Libre'} · ${money(p.value)}${p.listed ? ' · transférable' : ''}</span></span><span class="pot">Pot. ${potText(S, p)}</span>${ovrB(p.ovr)}</button>`;
+    return `<button class="li" data-a="player" data-id="${p.id}">${posB(p.pos)}${avatar(p, c, 34)}<span class="grow"><span class="nm">${flag(p.nat)} ${esc(pname(p))}</span><span class="meta">${p.age} ans · ${c ? esc(c.name) : 'Libre'} · ${money(p.value)}${p.listed ? ' · transférable' : ''}</span></span><span class="pot">Pot. ${potText(S, p)}</span>${ovrB(p.ovr)}</button>`;
   };
   if (f.tab === 'search') {
     let ps = Object.values(S.players).filter((p) => p.club && p.club !== S.user && !p.youth && !p.loan);

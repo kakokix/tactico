@@ -4,7 +4,7 @@
 import { generateRealWorld } from '../../src/core/worldgen.js';
 import { pshort } from '../../src/core/player.js';
 import { POS_ORDER } from '../../src/core/constants.js';
-import { REAL_COUNTRIES } from '../../src/data/real/index.js';
+import { REAL_COUNTRIES, REAL_CONTI } from '../../src/data/real/index.js';
 import { SOSIES } from './sosies.mjs';
 
 export const GRAINE = 2026;
@@ -102,9 +102,36 @@ export function maillot([c1, c2]) {
   return { m: c1, s: clair ? c1 : c2, n: num };
 }
 
+// ---------- Noms dans les textes gardés par une carrière (messages, actualités, transferts, palmarès) ----------
+const TEXTES = ['inbox', 'news', 'transfers', 'history', 'awards'];
+const echapper = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function remplacerNoms(state, paires) {
+  // mots des noms de clubs, villes, stades et compétitions : jamais remplacés (« AC Milan » reste « AC Milan »)
+  const proteges = new Set();
+  const mots = (t) => String(t || '').split(/[^\p{L}\p{N}'-]+/u).forEach((w) => w && proteges.add(w));
+  for (const c of Object.values(state.clubs)) { mots(c.name); mots(c.short); mots(c.city); mots(c.stadium?.name); }
+  for (const c of Object.values(state.comps)) mots(c.name);
+  const map = new Map();
+  for (const [a, b] of paires) if (a && b && a !== b && a.length >= 3 && !proteges.has(a)) map.set(a, b);
+  if (!map.size) return;
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:${[...map.keys()].sort((x, y) => y.length - x.length).map(echapper).join('|')})(?![\\p{L}\\p{N}])`, 'gu');
+  const visite = (o) => {
+    for (const k of Object.keys(o)) {
+      const v = o[k];
+      if (typeof v === 'string') o[k] = v.replace(re, (m) => map.get(m));
+      else if (v && typeof v === 'object') visite(v);
+    }
+  };
+  for (const k of TEXTES) if (state[k] && typeof state[k] === 'object') visite(state[k]);
+}
+const complet = (fn, ln) => (fn ? fn + ' ' + ln : '');
+
 // ---------- Construction ----------
-export function construireMonde(graine = GRAINE) {
-  const state = generateRealWorld(graine);
+// Habille un monde réel pour Roblox : un personnage R6 différent pour chaque joueur (sosies pour les stars)
+// et des noms modifiés pour les vrais joueurs. Les vrais noms restent à part (fn0, ln0, jamais envoyés à Roblox)
+// pour qu'une carrière puisse revenir sur le site sans perte.
+export function adapterPourRoblox(state, graine = GRAINE) {
+  if (state.roblox) return state;
   // Homonymes (deux « Vitinha ») : le sosie va au joueur le mieux noté
   const star = new Map();
   for (const p of Object.values(state.players)) {
@@ -114,7 +141,7 @@ export function construireMonde(graine = GRAINE) {
   }
   for (const club of Object.values(state.clubs)) {
     const pris = new Set();
-    const ps = club.squad.map((id) => state.players[id]);
+    const ps = club.squad.map((id) => state.players[id]).filter(Boolean);
     // les stars d'abord (look fixe), puis un look unique pour chacun des autres
     for (const p of ps) {
       if (!p.real) continue;
@@ -122,7 +149,7 @@ export function construireMonde(graine = GRAINE) {
       if (star.get(vrai) === p) { p.look = lireSosie(SOSIES[vrai]); pris.add(cle(p.look)); }
     }
     for (const p of ps) {
-      if (p.look) continue;
+      if (p.look) { pris.add(cle(p.look)); continue; }
       const rnd = alea(hash(p.id + ':' + graine));
       let l = tirerLook(rnd, p.age);
       for (let k = 0; k < 30 && pris.has(cle(l)); k++) l = tirerLook(rnd, p.age);
@@ -131,11 +158,49 @@ export function construireMonde(graine = GRAINE) {
     }
   }
   // noms modifiés pour tous les vrais joueurs (le moteur de match les utilise dans ses commentaires)
+  const paires = [];
   for (const p of Object.values(state.players)) {
-    if (p.real) p.ln = nomModifie(p.ln);
-    if (p.real && p.fn) p.fn = sansAccents(p.fn);
+    if (!p.real) continue;
+    p.ln0 = p.ln;
+    p.ln = nomModifie(p.ln);
+    if (p.fn) { p.fn0 = p.fn; p.fn = sansAccents(p.fn); }
+    paires.push([complet(p.fn0, p.ln0), complet(p.fn, p.ln)], [p.ln0, p.ln]);
   }
+  // une carrière venue du site : ses messages et actualités prennent aussi les noms modifiés
+  if (state.mgr) remplacerNoms(state, paires);
+  if (state.contiName === REAL_CONTI) state.contiName = 'European Cup';
+  state.roblox = 1;
   return state;
+}
+
+// Retour sur le site : vrais noms rendus (gardés à part, ou retrouvés dans le monde de départ des carrières Roblox)
+export function adapterPourSite(state) {
+  if (!state.roblox) return state;
+  let depart = null;
+  const paires = [];
+  for (const p of Object.values(state.players)) {
+    if (!p.real) continue;
+    const fn = p.fn, ln = p.ln;
+    if (p.ln0 !== undefined) {
+      p.ln = p.ln0;
+      if (p.fn0 !== undefined) p.fn = p.fn0;
+    } else {
+      depart = depart || generateRealWorld(GRAINE);
+      const o = depart.players[p.id];
+      if (o && o.real) { p.ln = o.ln; p.fn = o.fn; }
+    }
+    delete p.ln0;
+    delete p.fn0;
+    paires.push([complet(fn, ln), complet(p.fn, p.ln)], [ln, p.ln]);
+  }
+  if (state.mgr) remplacerNoms(state, paires);
+  if (state.contiName === 'European Cup') state.contiName = REAL_CONTI;
+  delete state.roblox;
+  return state;
+}
+
+export function construireMonde(graine = GRAINE) {
+  return adapterPourRoblox(generateRealWorld(graine), graine);
 }
 
 // Données compactes pour Roblox

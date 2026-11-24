@@ -4,7 +4,8 @@
 import { randomBytes } from 'node:crypto';
 import { gzipSync, gunzipSync } from 'node:zlib';
 import { setLang, posL, ordL, paysL } from '../../../src/core/i18n.js';
-import { construireMonde, GRAINE, maillot, lookDe } from '../../../roblox/outils/monde.mjs';
+import { construireMonde, GRAINE, maillot, lookDe, adapterPourRoblox, adapterPourSite } from '../../../roblox/outils/monde.mjs';
+import { deposer, retirer, DUREE_MIN } from '../lien/core.mjs';
 import { startCareer, continueGame, userMatchToday, nextUserMatch, createSim, finishUserMatch } from '../../../src/core/game.js';
 import { leagueTable, compName, matchWinner, positionOf } from '../../../src/core/competitions.js';
 import { fmtDate, toDate, monthName, windowOpen } from '../../../src/core/dates.js';
@@ -426,6 +427,8 @@ VUES.joueur = (S, q = {}) => {
     stats: `Season ${saison(S)}: ${p.st.apps} apps · ${p.st.gls} goals · ${p.st.ast} assists${p.st.apps ? ' · average rating ' + avgRating(p).toFixed(2) : ''} · ${p.st.motm || 0} MOTM`,
     blessure: p.inj > 0 ? `${p.injName} · out for ${p.inj} days` : '',
     monJoueur: mien ? 1 : 0, transferable: p.listed ? 1 : 0, jeune: p.youth ? 1 : 0, pret: p.loan ? 1 : 0,
+    // portrait : la tête de son personnage R6, avec le maillot de son club
+    look: (({ coupe, barbe, peau }) => ({ coupe, barbe, peau }))(lookDe(p)), kit: c ? maillot(c.colors) : { m: '#3a4a42', s: '#2b3a33', n: '#ffffff' }, nat: p.nat,
   };
   if (mien) {
     const club = S.clubs[S.user];
@@ -842,6 +845,31 @@ async function soumettre(S, envoyer, force) {
 }
 const lireSur = async (lire) => (lire ? lire().catch(() => null) : null);
 
+// ---------- Liaison avec le site (code à 6 caractères, voir /api/lien) ----------
+const ERREURS_LIEN = {
+  code: 'The code must be 6 characters (letters and numbers).',
+  inconnu: 'Unknown code: check it, or get a new code on the website.',
+  expire: 'This code has expired (30 minutes): get a new one on the website.',
+  sens: 'This code sends a career from Roblox to the website: enter it on the website.',
+};
+// Carrière du site → Roblox (remplace la carrière Roblox du joueur s'il en a une)
+async function importer(b, store) {
+  const r = await retirer(store, b.code, 'site');
+  if (r.erreur) return { error: ERREURS_LIEN[r.erreur] };
+  const S = adapterPourRoblox(r.S);
+  if (typeof b.nom === 'string' && b.nom.trim()) S.mgr.name = b.nom.trim().slice(0, 20);
+  S.flags.lbDirty = true;
+  const t = /^[a-f0-9]{32}$/.test(b.t || '') ? b.t : nouveauJeton();
+  await sauver(store, t, S);
+  return { t, ok: 'Career imported from the website.', ...vue(S, 'accueil') };
+}
+// Carrière Roblox → site (vrais noms rendus) : le code est à entrer sur le site
+async function exporter(S, store) {
+  S.roblox = 1; // les carrières d'avant la liaison n'avaient pas encore cette marque
+  const code = await deposer(store, 'roblox', adapterPourSite(S));
+  return { code, minutes: DUREE_MIN };
+}
+
 // ---------- Point d'entrée ----------
 export async function traiter(b, store, lireClassement, envoyerScore) {
   const a = b && b.a;
@@ -854,8 +882,10 @@ export async function traiter(b, store, lireClassement, envoyerScore) {
     await sauver(store, t, r.S);
     return { t, ...vue(r.S, 'accueil') };
   }
+  if (a === 'importer') return importer(b, store);
   const S = await charger(store, b && b.t);
   if (!S) return { error: 'Career not found.', perdue: true };
+  if (a === 'exporter') return exporter(S, store);
   const q = (b.q && typeof b.q === 'object') ? b.q : {};
   let res = {}, modifie = false, ecran = typeof b.e === 'string' ? b.e : 'accueil';
   switch (a) {

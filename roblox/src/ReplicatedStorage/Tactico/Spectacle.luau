@@ -17,7 +17,7 @@ local E = Config.ECHELLE
 local L, W = 105, 68
 local ARRET = "__arret_tactico__"
 local ANIM_COURSE, ANIM_REPOS = "rbxassetid://180426354", "rbxassetid://180435571"
-local RAYON = 0.5
+local RAYON = 0.6
 local rnd = Random.new()
 
 local vitesse = 1
@@ -969,8 +969,21 @@ function Spectacle.vitesse(v)
 	vitesse = math.clamp(v, 0.5, 8)
 end
 
+-- Le ballon libre de la pelouse (serveur) est caché pendant un match en 3D
+local function ballonLibre(cache)
+	local libre = workspace:FindFirstChild("BallonLibre")
+	if libre then
+		for _, p in libre:GetDescendants() do
+			if p:IsA("BasePart") then
+				p.LocalTransparencyModifier = if cache then 1 else 0
+			end
+		end
+	end
+end
+
 function Spectacle.arreter()
 	jeton += 1
+	ballonLibre(false)
 	if connexion then
 		connexion:Disconnect()
 		connexion = nil
@@ -990,6 +1003,7 @@ end
 
 function Spectacle.jouer(data, inf, interface)
 	Spectacle.arreter()
+	ballonLibre(true)
 	local monJeton = jeton
 	ui, info = interface, inf
 	source = if inf.dossier and inf.dossier.Parent then inf.dossier else Acteurs
@@ -1015,12 +1029,18 @@ function Spectacle.jouer(data, inf, interface)
 			creerActeur(mdl.Name, nil, nil)
 		end
 	end
-	ballon = Instance.new("Part")
+	-- vrai ballon (blanc à 12 pentagones noirs, modèle ReplicatedStorage.Tactico.Ballon)
+	local modele = T:FindFirstChild("Ballon")
+	if modele then
+		ballon = modele:Clone()
+	else
+		ballon = Instance.new("Part")
+		ballon.Shape = Enum.PartType.Ball
+		ballon.Color = Color3.fromRGB(250, 250, 250)
+		ballon.Material = Enum.Material.SmoothPlastic
+	end
 	ballon.Name = "Ballon"
-	ballon.Shape = Enum.PartType.Ball
 	ballon.Size = Vector3.one * (RAYON * 2)
-	ballon.Color = Color3.fromRGB(250, 250, 250)
-	ballon.Material = Enum.Material.SmoothPlastic
 	ballon.Anchored = true
 	ballon.CanCollide = false
 	ballon.CanQuery = false

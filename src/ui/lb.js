@@ -6,6 +6,18 @@ const API = '/api/leaderboard';
 let lastSubmit = 0;
 let cache = { at: 0, id: null, data: null };
 
+// Liaison avec le jeu Roblox : une carrière passe du site au jeu (et inversement) avec un code à 6 caractères
+export async function lienAppel(corps) {
+  let d = null;
+  try {
+    const r = await fetch('/api/lien', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corps) });
+    d = await r.json();
+  } catch (e) { d = null; }
+  if (!d) throw new Error('Serveur injoignable, réessaie dans un instant.');
+  if (d.error) throw new Error(d.error);
+  return d;
+}
+
 export function apiAvailable() {
   try {
     const h = location.hostname;

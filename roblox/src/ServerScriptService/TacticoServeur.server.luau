@@ -267,8 +267,43 @@ end
 local ACTIONS = {
 	clubs = true, classement = true, nouvelle = true, vue = true, continuer = true, jouer = true, tactique = true,
 	entrainement = true, lire = true, repondre = true, toutLire = true, offre = true, joueur = true, club = true,
-	transferable = true, postuler = true, supprimer = true,
+	transferable = true, postuler = true, supprimer = true, importer = true, exporter = true,
 }
+
+-- Noms venus du site (classement mondial) : filtrés par Roblox avant d'être affichés, avec un cache
+local filtres = {}
+local function filtrerNom(nom, player)
+	if typeof(nom) ~= "string" or nom == "" then
+		return ""
+	end
+	if filtres[nom] then
+		return filtres[nom]
+	end
+	local ok, f = pcall(function()
+		return TextService:FilterStringAsync(nom, player.UserId):GetNonChatStringForBroadcastAsync()
+	end)
+	if ok and typeof(f) == "string" then
+		filtres[nom] = f
+		return f
+	end
+	return string.rep("#", math.min(#nom, 12))
+end
+local function filtrerLignes(lignes, player)
+	if typeof(lignes) ~= "table" then
+		return
+	end
+	local reste = #lignes
+	for _, l in lignes do
+		task.spawn(function()
+			l.nom = filtrerNom(l.nom, player)
+			reste -= 1
+		end)
+	end
+	local t0 = os.clock()
+	while reste > 0 and os.clock() - t0 < 10 do
+		task.wait(0.05)
+	end
+end
 
 -- Garde seulement des valeurs simples (le site vérifie tout le reste)
 local function nettoyer(q)
@@ -308,6 +343,11 @@ local function traiterCarriere(player, req)
 		if ancien then
 			api({ a = "supprimer", t = ancien })
 		end
+	elseif req.a == "importer" then
+		-- carrière venue du site (code à 6 caractères) : elle remplace la carrière Roblox du joueur
+		corps.code = string.sub(string.upper((string.gsub(tostring(req.code or ""), "[^%w]", ""))), 1, 8)
+		corps.nom = player.DisplayName
+		corps.t = lireJeton(player)
 	elseif req.a ~= "clubs" and req.a ~= "classement" then
 		local t = lireJeton(player)
 		if not t then
@@ -319,8 +359,14 @@ local function traiterCarriere(player, req)
 		corps.s = Random.new():NextInteger(1, 2147483646)
 	end
 	local res = api(corps)
-	if req.a == "nouvelle" and res.t then
+	if (req.a == "nouvelle" or req.a == "importer") and res.t then
 		ecrireJeton(player, res.t)
+	end
+	if res.classement then
+		filtrerLignes(res.classement.lignes, player)
+	end
+	if res.ecran == "mondial" and typeof(res.d) == "table" then
+		filtrerLignes(res.d.lignes, player)
 	end
 	if (req.a == "supprimer" and res.supprime) or res.perdue then
 		ecrireJeton(player, nil)
@@ -364,3 +410,75 @@ Players.PlayerRemoving:Connect(function(p)
 		d:Destroy()
 	end
 end)
+
+-- ---------- Ballon libre : un vrai ballon sur la pelouse, que les joueurs peuvent frapper ----------
+local DEPART = Vector3.new(0, 4, 18)
+local function creerBallonLibre()
+	local modele = T:FindFirstChild("Ballon")
+	if not modele then
+		return
+	end
+	local m = Instance.new("Model")
+	m.Name = "BallonLibre"
+	local phys = Instance.new("Part")
+	phys.Name = "Physique"
+	phys.Shape = Enum.PartType.Ball
+	phys.Size = Vector3.one * 2.2
+	phys.Transparency = 1
+	phys.CustomPhysicalProperties = PhysicalProperties.new(0.25, 0.35, 0.55, 1, 1)
+	phys.CFrame = CFrame.new(DEPART)
+	phys.Parent = m
+	local vis = modele:Clone()
+	vis.Name = "Visuel"
+	vis.Size = phys.Size
+	vis.Anchored = false
+	vis.CanCollide = false
+	vis.CanTouch = false
+	vis.CanQuery = false
+	vis.Massless = true
+	vis.CFrame = phys.CFrame
+	vis.Parent = m
+	local w = Instance.new("WeldConstraint")
+	w.Part0, w.Part1 = phys, vis
+	w.Parent = phys
+	m.PrimaryPart = phys
+	m.Parent = workspace
+	phys:SetNetworkOwner(nil)
+
+	local dernierCoup = {}
+	phys.Touched:Connect(function(hit)
+		local perso = hit.Parent
+		local hum = perso and perso:FindFirstChildOfClass("Humanoid")
+		local racine = perso and perso:FindFirstChild("HumanoidRootPart")
+		if not hum or hum.Health <= 0 or not racine or not Players:GetPlayerFromCharacter(perso) then
+			return
+		end
+		local t = os.clock()
+		if dernierCoup[perso] and t - dernierCoup[perso] < 0.25 then
+			return
+		end
+		dernierCoup[perso] = t
+		local dir = (phys.Position - racine.Position) * Vector3.new(1, 0, 1)
+		if dir.Magnitude < 0.1 then
+			dir = racine.CFrame.LookVector * Vector3.new(1, 0, 1)
+		end
+		local course = (racine.AssemblyLinearVelocity * Vector3.new(1, 0, 1)).Magnitude
+		local force = math.clamp(22 + course * 1.8, 22, 75)
+		phys.AssemblyLinearVelocity = dir.Unit * force + Vector3.new(0, force * 0.3, 0)
+		phys.AssemblyAngularVelocity = dir.Unit:Cross(Vector3.yAxis) * -force / 1.1
+	end)
+
+	-- remis au centre s'il sort du stade ou tombe
+	task.spawn(function()
+		while m.Parent do
+			task.wait(2)
+			local p = phys.Position
+			if p.Y < -30 or math.abs(p.X) > 230 or math.abs(p.Z) > 160 then
+				phys.AssemblyLinearVelocity = Vector3.zero
+				phys.AssemblyAngularVelocity = Vector3.zero
+				phys.CFrame = CFrame.new(DEPART)
+			end
+		end
+	end)
+end
+creerBallonLibre()

@@ -8,7 +8,7 @@ import { confLabel, vacancies, jobChance, applyForJob, sackUser } from '../core/
 import { leagueTable } from '../core/competitions.js';
 import { fmtDate } from '../core/dates.js';
 import { careerScore, trophyCount } from '../core/score.js';
-import { apiAvailable, fetchBoard, submitScore, SITE_URL, myScore } from './lb.js';
+import { apiAvailable, fetchBoard, submitScore, SITE_URL, myScore, lienAppel } from './lb.js';
 import { saveGame, exportString, importString, deleteSave } from '../core/save.js';
 import { addMsg } from '../core/messages.js';
 import { bootTitle } from './scr_main.js';
@@ -153,6 +153,11 @@ function optionsScreen() {
       <button class="btn block mt" data-a="copySave">Copier la sauvegarde (texte)</button>
       <button class="btn block mt" data-a="importOpen">Importer une sauvegarde</button>
       <p class="small muted mt">L'export permet de continuer ta carrière sur un autre appareil.</p></div>
+    <div class="card"><h3 class="mb">${ICON.sponsor}Jeu Roblox</h3>
+      ${apiAvailable() ? `<p class="small muted mb">Continue ta carrière dans le jeu Roblox Tactico (en anglais, avec des noms modifiés pour les vrais joueurs), puis reviens ici quand tu veux.</p>
+      <button class="btn pri block" data-a="rbxSend" ${S.mode === 'real' ? '' : 'disabled'}>${ICON.next} Envoyer ma carrière vers Roblox</button>
+      <button class="btn block mt" data-a="rbxGetOpen">${ICON.back} Récupérer ma carrière Roblox</button>
+      ${S.mode === 'real' ? '' : '<p class="small muted mt">Seules les carrières du monde réel peuvent aller sur Roblox.</p>'}` : `<p class="small muted">Le passage entre le site et le jeu Roblox se fait sur <a href="${SITE_URL}" target="_blank" rel="noopener">${SITE_URL.replace('https://', '')}</a>.</p>`}</div>
     <div class="card"><h3 class="mb">${ICON.cog}Partie</h3>
       <button class="btn block" data-a="toTitle">Retour à l'écran titre</button>
       <button class="btn danger block mt" data-a="deleteAsk">Supprimer la carrière</button>
@@ -161,8 +166,22 @@ function optionsScreen() {
   </div>`;
 }
 
+function rbxCodeModal(m) {
+  return `${modalHead('Envoyer vers Roblox')}
+    <div class="center mb"><div class="small muted">Ton code</div><div class="bigcode">${esc(m.code)}</div></div>
+    <ol class="small steps"><li>Lance le jeu Roblox <b>Tactico</b>.</li><li>Sur l'écran titre, choisis <b>Import from website</b>.</li><li>Entre ce code : il est valable ${esc(m.minutes)} minutes, une seule fois.</li></ol>
+    <p class="small muted mt">Ta carrière reste aussi sur ce navigateur. Dans le jeu, elle remplace ta carrière Roblox.</p>`;
+}
+function rbxGetModal() {
+  return `${modalHead('Récupérer ma carrière Roblox')}
+    <ol class="small steps"><li>Dans le jeu Roblox, ouvre <b>Options</b> puis <b>Send to website</b>.</li><li>Entre ici le code affiché (valable 30 minutes).</li></ol>
+    <div class="field mt"><label for="rbxCode">Code du jeu Roblox</label><input class="input codein" id="rbxCode" maxlength="8" autocomplete="off" spellcheck="false" placeholder="ABC123"></div>
+    ${G.S && G.S.mgr ? '<div class="note warn mb">Ta carrière actuelle sur ce navigateur sera remplacée. Exporte-la avant si tu veux la garder.</div>' : ''}
+    <button class="btn pri block" data-a="rbxGetGo">${ICON.check} Récupérer</button>`;
+}
+
 function importModal() {
-  return `${modalHead('Importer une sauvegarde')}<div class="field"><label>Fichier de sauvegarde</label><input class="input" type="file" accept=".txt,.json,.tactico" data-ch="importFile"></div>
+  return `${modalHead('Importer une sauvegarde')}${apiAvailable() ? `<button class="btn block mb" data-a="rbxGetOpen">${ICON.sponsor} Récupérer ma carrière du jeu Roblox (code)</button>` : ''}<div class="field"><label>Fichier de sauvegarde</label><input class="input" type="file" accept=".txt,.json,.tactico" data-ch="importFile"></div>
     <div class="field"><label>… ou colle le texte de la sauvegarde</label><textarea class="input" id="importText" rows="5" style="font-size:12px" placeholder="TACTICO1:…"></textarea></div>
     <button class="btn pri block" data-a="importGo">Importer</button>`;
 }
@@ -203,7 +222,7 @@ function download(name, text) {
 
 register({
   screens: { finances: financesScreen, training: trainingScreen, club: clubScreen, career: careerScreen, world: worldScreen, options: optionsScreen },
-  modals: { import: importModal, season: seasonModal, worldboard: worldBoardModal },
+  modals: { import: importModal, season: seasonModal, worldboard: worldBoardModal, rbxCode: rbxCodeModal, rbxGet: rbxGetModal },
   actions: {
     budgetShift: (d) => {
       const c = G.S.clubs[G.S.user];
@@ -237,6 +256,29 @@ register({
       try { await navigator.clipboard.writeText(await exportString(G.S)); toast('Sauvegarde copiée dans le presse-papiers.'); } catch (e) { toast('Copie impossible ici.', true); }
     },
     importOpen: () => openModal('import'),
+    rbxSend: async () => {
+      const S = G.S;
+      if (!S || !S.mgr) return;
+      toast('Envoi de ta carrière…');
+      try {
+        await saveGame(S);
+        const d = await lienAppel({ a: 'deposer', etat: await exportString(S) });
+        openModal('rbxCode', { code: d.code, minutes: d.minutes });
+      } catch (e) { toast(e.message, true); }
+    },
+    rbxGetOpen: () => openModal('rbxGet'),
+    rbxGetGo: async () => {
+      const code = (document.getElementById('rbxCode')?.value || '').trim();
+      if (!code) { toast('Entre le code affiché dans le jeu Roblox.', true); return; }
+      try {
+        const d = await lienAppel({ a: 'recuperer', code });
+        const S = await importString(d.etat);
+        G.S = S; ui.modals = [];
+        await saveGame(S);
+        go(S.mgr ? 'home' : 'title');
+        toast('Carrière Roblox récupérée !');
+      } catch (e) { toast(e.message, true); }
+    },
     importFile: async (d, el) => {
       const f = el.files?.[0]; if (!f) return;
       document.getElementById('importText').value = await f.text();

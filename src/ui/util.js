@@ -139,3 +139,57 @@ export function posMap(main, alts = []) {
   const dot = (pos, cls) => { const [x, y] = POS_XY[pos]; return `<span class="pd ${cls}" style="left:${x}%;top:${y}%">${pos}</span>`; };
   return `<div class="posmap"><svg viewBox="0 0 68 100" preserveAspectRatio="none" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".5"><rect x="2" y="2" width="64" height="96"/><path d="M2 50h64"/><circle cx="34" cy="50" r="8"/><rect x="16" y="2" width="36" height="15"/><rect x="16" y="83" width="36" height="15"/></svg>${alts.map((a) => dot(a, 'p2')).join('')}${dot(main, 'p1')}</div>`;
 }
+
+// ---------- Avatar dessiné d'un joueur ----------
+// Tiré au hasard à partir de son seul identifiant : jamais d'après son nom, sa nationalité ou un vrai visage.
+const AV_PEAU = ['#f5cdaf', '#eab892', '#cc8e69', '#a06948', '#7c5238', '#5c3c2a'];
+const AV_CHEV = ['#17120f', '#2e1d13', '#4a2f1c', '#6e4527', '#c99b4a', '#a4522b'];
+function avHash(s) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function avRnd(seed) {
+  let t = seed >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const AV_O = '#13201a';
+const AV_COUPES = {
+  ras: (c) => `<path d="M20.6 25c.4-10 5.4-11.5 11.4-11.5s11 1.5 11.4 11.5c-3.4-5.5-7.4-6.5-11.4-6.5s-8 1-11.4 6.5z" fill="${c}"/>`,
+  court: (c) => `<path d="M20 26c-1-13 6-15 12-15 7 0 13 2.5 12 15-2-5-4-6.5-8-5.5-3-2.5-9-2-12-.5-2 1-3 3-4 6z" fill="${c}" stroke="${AV_O}" stroke-width="1.6" stroke-linejoin="round"/>`,
+  raie: (c) => `<path d="M20 26c-1-12 5-15 13-15 7 0 12 3 11 14-3-6-7-8-13-8-4 0-8 2-11 9z" fill="${c}" stroke="${AV_O}" stroke-width="1.6" stroke-linejoin="round"/>`,
+  boucles: (c) => `<g fill="${c}" stroke="${AV_O}" stroke-width="1.4">${[[21.5, 21], [25.5, 16], [32, 14], [38.5, 16], [42.5, 21]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5.2"/>`).join('')}</g>`,
+  iroquois: (c) => `<path d="M29 12c1-3 5-3 6 0v9c-1-1.5-5-1.5-6 0z" fill="${c}" stroke="${AV_O}" stroke-width="1.4"/>`,
+  chauve: () => '<path d="M26 17.5c2-1.2 4-1.6 6-1.6" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>',
+};
+const AV_DERRIERE = {
+  afro: (c) => `<circle cx="32" cy="23" r="17" fill="${c}" stroke="${AV_O}" stroke-width="2"/>`,
+  longs: (c) => `<path d="M19 28c-2-16 7-19 13-19s15 3 13 19l1 14c-4 2-6-2-6-6H24c0 4-2 8-6 6z" fill="${c}" stroke="${AV_O}" stroke-width="1.8" stroke-linejoin="round"/>`,
+};
+export function avatar(p, club, size = 40) {
+  const r = avRnd(avHash(String(p.id) + ':avatar'));
+  const peau = Math.floor(r() * 6);
+  const styles = ['ras', 'ras', 'court', 'court', 'court', 'raie', 'raie', 'boucles', 'boucles', 'afro', 'longs', 'iroquois', 'chauve'];
+  const style = styles[Math.floor(r() * styles.length)];
+  let chev = AV_CHEV[Math.floor(r() * (peau > 2 ? 3 : AV_CHEV.length))];
+  if (p.age >= 32 && r() < 0.3) chev = '#8d8d8d';
+  const barbe = p.age >= 21 && r() < 0.28;
+  const c1 = club ? club.colors[0] : '#3a4a42', c2 = club ? club.colors[1] : '#8fa99b';
+  const sk = AV_PEAU[peau];
+  return `<svg class="av" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" fill="#183022"/>`
+    + (AV_DERRIERE[style] ? AV_DERRIERE[style](chev) : '')
+    + `<rect x="27.5" y="35" width="9" height="13" rx="3" fill="${sk}" stroke="${AV_O}" stroke-width="2"/>`
+    + `<path d="M5 66c2-13 12-18.5 27-18.5S57 53 59 66z" fill="${c1}" stroke="${AV_O}" stroke-width="2"/><path d="M25.5 48 32 55l6.5-7" fill="none" stroke="${c2}" stroke-width="3" stroke-linejoin="round"/>`
+    + `<circle cx="20.6" cy="28.5" r="3" fill="${sk}" stroke="${AV_O}" stroke-width="1.8"/><circle cx="43.4" cy="28.5" r="3" fill="${sk}" stroke="${AV_O}" stroke-width="1.8"/>`
+    + `<ellipse cx="32" cy="27" rx="11.6" ry="13" fill="${sk}" stroke="${AV_O}" stroke-width="2"/>`
+    + (barbe ? `<path d="M20.9 29c.3 9.5 5 12.5 11.1 12.5S42.8 38.5 43.1 29c-2 5.5-6 7-11.1 7s-9.1-1.5-11.1-7z" fill="${chev}"/>` : '')
+    + `<circle cx="27.4" cy="28" r="1.5" fill="${AV_O}"/><circle cx="36.6" cy="28" r="1.5" fill="${AV_O}"/><path d="M25 24.3h4.6M34.4 24.3H39" stroke="${chev}" stroke-width="1.7" stroke-linecap="round"/>`
+    + `<path d="M29.2 33.8q2.8 1.9 5.6 0" fill="none" stroke="#6b2f24" stroke-width="1.5" stroke-linecap="round"/>`
+    + (AV_COUPES[style] || (style === 'afro' ? AV_COUPES.boucles : AV_COUPES.court))(chev)
+    + '</svg>';
+}

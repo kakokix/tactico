@@ -303,3 +303,9 @@ input[type=range]{width:100%;accent-color:var(--lime)}
 .chip.orange{color:var(--orange)}
 
 h3 .ic,h2 .ic{width:1.25em;height:1.25em;margin-right:7px;vertical-align:-.28em}
+.bigcode{font-family:var(--cond);font-size:48px;font-weight:800;letter-spacing:.2em;color:var(--lime);line-height:1.1;margin:4px 0}
+.steps{padding-left:20px;margin:8px 0;line-height:1.7}
+.codein{text-transform:uppercase;letter-spacing:.25em;font-size:22px;font-family:var(--cond);font-weight:700;text-align:center}
+.av{display:inline-block;flex:none;border-radius:50%;vertical-align:middle;box-shadow:0 0 0 2px var(--line2)}
+.av.big{box-shadow:0 0 0 3px var(--line2)}
+td .av,.li .av{margin-right:8px}
