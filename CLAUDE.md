@@ -15,8 +15,15 @@ Jeu de manager de foot en JavaScript pur (sans framework), en français. L'utili
 - `netlify/functions/leaderboard/` : API `/api/leaderboard` (GET classement, POST score) avec Netlify Blobs. `core.mjs` contient la validation.
 - `build.mjs` : regroupe tout dans un seul `dist/index.html`.
 
+## Jeu Roblox (`roblox/`)
+- Version Roblox en construction (personnages Roblox sur un terrain 3D, même jeu que le site). Voir `roblox/README.md`.
+- Studio est relié à Claude par le serveur MCP de Roblox Studio (outils `Roblox_Studio__*` passant par l'ordinateur de l'utilisateur). On construit et on teste directement dans sa place avec `execute_luau`, `screen_capture` et `start_stop_play`, puis on garde le code ici. Toujours arrêter le test de jeu à la fin.
+- `roblox/stade/Stade.luau` : le stade (1 m = 3 studs, repère `Stade.Centre`).
+- Ne sauvegarder la place (`save_place`) que si l'utilisateur le demande ; sinon, lui rappeler Ctrl+S.
+
 ## Règles
 - Monde réel : vrais noms de clubs, de joueurs, de championnats et de stades (choix de l'utilisateur, prévenu des questions de droits). Jamais de vrai logo : écussons génériques aux couleurs du club. Entraîneurs fictifs. Jamais de fausse citation attribuée à un vrai joueur (messages en style indirect). L'avertissement « jeu non officiel » reste sur l'écran titre et en pied de page.
+- Jamais de photo ni de visage ressemblant d'un vrai joueur, ni sur le site ni sur Roblox : droits à l'image.
 - Le monde fictif reste disponible (choix à la création de carrière) et les anciennes sauvegardes fictives doivent continuer à fonctionner.
 - Toute valeur affichée passe par `esc()`.
 - Après une modification : `node build.mjs`, `node tests/realdata.mjs`, `node tests/sim.mjs 2` (monde réel ; ajouter `777 fictif` pour le monde fictif), `node tests/engine.mjs`, puis test navigateur (`python3 tests/ui.py`, `python3 tests/ui_live.py` pour le match en direct, avec `python3 -m http.server 8765 --directory dist`).
