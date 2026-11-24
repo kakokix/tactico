@@ -6,13 +6,20 @@
 ]]
 local HS = game:GetService("HttpService")
 local out = { scripts = {}, gui = nil }
+-- le texte ouvert dans l'éditeur de Studio fait foi (Source peut être en retard sur un onglet ouvert)
+local okSES, SES = pcall(function()
+	return game:GetService("ScriptEditorService")
+end)
 local function ajouter(chemin, inst)
 	if inst then
-		out.scripts[chemin] = inst.Source
+		local ok, src = pcall(function()
+			return SES:GetEditorSource(inst)
+		end)
+		out.scripts[chemin] = if okSES and ok and src then src else inst.Source
 	end
 end
 local RS = game:GetService("ReplicatedStorage").Tactico
-for _, n in { "Config", "Apparence", "Interface", "Spectacle" } do
+for _, n in { "Config", "Apparence", "Interface", "Spectacle", "Carriere" } do
 	ajouter("ReplicatedStorage/Tactico/" .. n .. ".luau", RS:FindFirstChild(n))
 end
 ajouter("ServerScriptService/TacticoServeur.server.luau", game:GetService("ServerScriptService"):FindFirstChild("TacticoServeur"))
@@ -22,7 +29,12 @@ local PROPS = { "Name", "Visible", "AnchorPoint", "Position", "Size", "Backgroun
 	"Text", "TextColor3", "TextScaled", "TextSize", "TextWrapped", "TextXAlignment", "TextYAlignment", "AutoButtonColor", "ScrollBarThickness",
 	"CanvasSize", "AutomaticCanvasSize", "CornerRadius", "Color", "Transparency", "Thickness", "ApplyStrokeMode", "FillDirection",
 	"HorizontalAlignment", "VerticalAlignment", "Padding", "SortOrder", "MaxSize", "MaxTextSize", "MinTextSize", "PaddingLeft", "PaddingRight",
-	"ResetOnSpawn", "IgnoreGuiInset", "ZIndexBehavior" }
+	"ResetOnSpawn", "IgnoreGuiInset", "ZIndexBehavior", "PaddingTop", "PaddingBottom", "Image", "ImageRectOffset", "ImageRectSize",
+	"ScaleType", "ImageColor3", "ImageTransparency", "AutomaticSize", "Wraps", "RichText", "PlaceholderText", "PlaceholderColor3",
+	"ClearTextOnFocus", "Active", "ZIndex", "ClipsDescendants", "Ambient", "LightColor", "LightDirection", "Enabled", "DisplayOrder",
+	"TextTransparency", "LineHeight", "TextTruncate", "ScrollingDirection", "AspectRatio", "AspectType", "DominantAxis", "CellSize",
+	"CellPadding", "FillDirectionMaxCells", "StartCorner", "Rotation", "Offset", "ScreenInsets", "Interactable", "Selectable",
+	"CanvasPosition", "VerticalScrollBarInset", "ScrollBarImageColor3", "ScrollBarImageTransparency", "TextStrokeTransparency", "TextStrokeColor3" }
 local function val(v)
 	local t = typeof(v)
 	if t == "UDim2" then
@@ -37,6 +49,22 @@ local function val(v)
 		return { "Enum", tostring(v.EnumType), v.Name }
 	elseif t == "Font" then
 		return { "Font", v.Family, v.Weight.Name, v.Style.Name }
+	elseif t == "Vector3" then
+		return { "Vector3", v.X, v.Y, v.Z }
+	elseif t == "ColorSequence" then
+		local k = {}
+		for _, p in v.Keypoints do
+			table.insert(k, { p.Time, math.round(p.Value.R * 255), math.round(p.Value.G * 255), math.round(p.Value.B * 255) })
+		end
+		return { "ColorSequence", k }
+	elseif t == "NumberSequence" then
+		local k = {}
+		for _, p in v.Keypoints do
+			table.insert(k, { p.Time, p.Value, p.Envelope })
+		end
+		return { "NumberSequence", k }
+	elseif t == "Content" then
+		return v.Uri or ""
 	end
 	return v
 end
